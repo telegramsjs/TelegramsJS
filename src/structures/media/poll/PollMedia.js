@@ -33,6 +33,11 @@ class PollMedia extends Base {
       this.document = new Document(client, data.document);
     }
 
+    if (data.link) {
+      /** Media is a general file, information about the file; currently, can't be received in a poll option */
+      this.link = data.link.url;
+    }
+
     if (data.live_photo) {
       /** Media is a live photo, information about the live photo */
       this.livePhoto = new LivePhoto(client, data.live_photo);

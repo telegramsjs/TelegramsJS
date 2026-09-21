@@ -367,6 +367,21 @@ class BaseClient extends EventEmitter {
       );
   }
 
+  /** Use this method to send rich messages. If the message contains a block with a media element, then the bot must have the right to send the media to the chat. On success, the sent Message is returned. */
+  async sendRichMessage(
+    params: MethodParameters["sendRichMessage"],
+  ): Promise<MethodsLibReturnType["sendRichMessage"]> {
+    return this.rest
+      .request<MethodsApiReturnType["sendRichMessage"]>(
+        "sendRichMessage",
+        toSnakeCase(params),
+      )
+      .then(
+        (res) =>
+          new Message(this, res) as MethodsLibReturnType["sendRichMessage"],
+      );
+  }
+
   /** Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled. Returns True on success. */
   async sendMessageDraft(
     params: MethodParameters["sendMessageDraft"],
@@ -676,6 +691,16 @@ class BaseClient extends EventEmitter {
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendDice"],
       );
+  }
+
+  /** Use this method to stream a partial rich message to a user while the message is being generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat. Returns True on success. */
+  async sendRichMessageDraft(
+    params: MethodParameters["sendRichMessageDraft"],
+  ): Promise<MethodsLibReturnType["sendRichMessageDraft"]> {
+    return this.rest.request<MethodsApiReturnType["sendRichMessageDraft"]>(
+      "sendRichMessageDraft",
+      toSnakeCase(params),
+    );
   }
 
   /** Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns True on success.
@@ -990,6 +1015,33 @@ class BaseClient extends EventEmitter {
       {
         ...(chatId && { chat_id: chatId }),
         user_id: userId,
+      },
+    );
+  }
+
+  /** Use this method to process a received chat join request query. Returns True on success. */
+  async answerChatJoinRequestQuery(
+    chatJoinRequestQueryId: string,
+    result: "approve" | "decline" | "queue",
+  ): Promise<MethodsLibReturnType["answerChatJoinRequestQuery"]> {
+    return this.rest.request<
+      MethodsApiReturnType["answerChatJoinRequestQuery"]
+    >("answerChatJoinRequestQuery", {
+      chat_join_request_query_id: chatJoinRequestQueryId,
+      result,
+    });
+  }
+
+  /** Use this method to process a received chat join request query by showing a Mini App to the user before deciding the outcome. Returns True on success. */
+  async sendChatJoinRequestWebApp(
+    chatJoinRequestQueryId: string,
+    webAppURL: string,
+  ): Promise<MethodsLibReturnType["sendChatJoinRequestWebApp"]> {
+    return this.rest.request<MethodsApiReturnType["sendChatJoinRequestWebApp"]>(
+      "sendChatJoinRequestWebApp",
+      {
+        chat_join_request_query_id: chatJoinRequestQueryId,
+        web_app_url: webAppURL,
       },
     );
   }
@@ -1751,7 +1803,7 @@ class BaseClient extends EventEmitter {
       .then((res) => new StarAmount(res));
   }
 
-  /** Use this method to edit text and game messages. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
+  /** Use this method to edit text, rich and game messages. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
   async editMessageText(
     params: MethodParameters["editMessageText"],
   ): Promise<MethodsLibReturnType["editMessageText"]> {
@@ -1787,7 +1839,7 @@ class BaseClient extends EventEmitter {
       });
   }
 
-  /** Use this method to edit animation, audio, document, live photo, photo, or video messages, or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
+  /** Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
   async editMessageMedia(
     params: MethodParameters["editMessageMedia"],
   ): Promise<MethodsLibReturnType["editMessageMedia"]> {

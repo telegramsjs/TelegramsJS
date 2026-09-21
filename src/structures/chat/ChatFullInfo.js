@@ -522,6 +522,22 @@ class ChatFullInfo extends Chat {
       };
     }
 
+    if ("paid_message_star_count" in data) {
+      /**
+       * The number of Telegram Stars a general user have to pay to send a message to the chat
+       * @type {number | undefined}
+       */
+      this.paidMessageStarCount = data.paid_message_star_count;
+    }
+
+    if ("guard_bot" in data && data.guard_bot) {
+      /**
+       * The bot that processes join request queries in the chat. The field is only available to chat administrators.
+       * @type {import("../misc/user/User").User | undefined}
+       */
+      this.guardBot = this.client.users._add(data.guard_bot);
+    }
+
     return data;
   }
 }

@@ -6,6 +6,7 @@ import type {
   Location,
   User,
 } from "./Message";
+import type { InputRichMessage } from "./RichMessage";
 
 /** This object represents a portion of the price for goods or services. */
 export interface LabeledPrice {
@@ -604,12 +605,14 @@ export interface InlineQueryResultCachedAudio {
 
 - InputTextMessageContent
 - InputLocationMessageContent
+- InputRichMessageContent
 - InputVenueMessageContent
 - InputContactMessageContent
 - InputInvoiceMessageContent */
 export type InputMessageContent =
   | InputTextMessageContent
   | InputLocationMessageContent
+  | InputRichMessageContent
   | InputVenueMessageContent
   | InputContactMessageContent
   | InputInvoiceMessageContent;
@@ -624,6 +627,13 @@ export interface InputTextMessageContent {
   /** Link preview generation options for the message */
   link_preview_options?: LinkPreviewOptions;
 }
+
+/** Represents the content of a rich message to be sent as the result of an inline query. */
+export interface InputRichMessageContent {
+  /** The message to be sent */
+  rich_message: InputRichMessage;
+}
+
 /** Represents the content of a location message to be sent as the result of an inline query. */
 export interface InputLocationMessageContent {
   /** Latitude of the location in degrees */

@@ -228,6 +228,122 @@ export interface ReactionTypeCustomEmoji {
   custom_emoji_id: string;
 }
 
+/** This object represents one size of a photo or a file / sticker thumbnail. */
+export interface PhotoSize {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Photo width */
+  width: number;
+  /** Photo height */
+  height: number;
+  /** File size in bytes */
+  file_size?: number;
+}
+
+/** This object represents a voice note. */
+export interface Voice {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Duration of the audio in seconds as defined by sender */
+  duration: number;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+}
+
+/** This object represents an animation file (GIF or H.264/MPEG-4 AVC video without sound). */
+export interface Animation {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Video width as defined by sender */
+  width: number;
+  /** Video height as defined by sender */
+  height: number;
+  /** Duration of the video in seconds as defined by sender */
+  duration: number;
+  /** Animation thumbnail as defined by sender */
+  thumbnail?: PhotoSize;
+  /** Original animation filename as defined by sender */
+  file_name?: string;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+}
+
+/** This object represents an audio file to be treated as music by the Telegram clients. */
+export interface Audio {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Duration of the audio in seconds as defined by sender */
+  duration: number;
+  /** Performer of the audio as defined by sender or by audio tags */
+  performer?: string;
+  /** Title of the audio as defined by sender or by audio tags */
+  title?: string;
+  /** Original filename as defined by sender */
+  file_name?: string;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+  /** Thumbnail of the album cover to which the music file belongs */
+  thumbnail?: PhotoSize;
+}
+
+/** This object represents a video file. */
+export interface Video {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Video width as defined by sender */
+  width: number;
+  /** Video height as defined by sender */
+  height: number;
+  /** Duration of the video in seconds as defined by sender */
+  duration: number;
+  /** Video thumbnail */
+  thumbnail?: PhotoSize;
+  /** Available sizes of the cover of the video in the message */
+  cover?: PhotoSize[];
+  /** Timestamp in seconds from which the video will play in the message */
+  start_timestamp?: number;
+  /** Original filename as defined by sender */
+  file_name?: string;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+  /** List of available qualities of the video. */
+  qualities?: VideoQuality[];
+}
+
+/** This object represents a video file of a specific quality. */
+export interface VideoQuality {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Video width */
+  width: number;
+  /** Video height */
+  height: number;
+  /** Codec that was used to encode the video, for example, “h264”, “h265”, or “av01” */
+  codec: string;
+  /** File size in bytes. */
+  file_size?: number;
+}
+
 /** This object represents a point on the map. */
 export interface Location {
   /** Latitude as defined by sender */

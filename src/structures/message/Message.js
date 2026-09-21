@@ -29,6 +29,7 @@ const { LinkPreviewOptions } = require("../misc/LinkPreviewOptions");
 const { RefundedPayment } = require("../invoice/RefundedPayment");
 const { MessageOrigin } = require("../message/MessageOrigin");
 const { MessageEntities } = require("../message/MessageEntities");
+const { RichMessage } = require("../message/RichMessage");
 const { ExternalReplyInfo } = require("../misc/ExternalReplyInfo");
 const { ChatBackground } = require("../chat/ChatBackground");
 const { Giveaway } = require("../giveaway/Giveaway");
@@ -205,6 +206,14 @@ class Message extends Base {
         data.text,
         data.entities,
       );
+    }
+
+    if ("rich_message" in data) {
+      /**
+       * Message is a rich formatted message
+       * @type {any | undefined}
+       */
+      this.richMessage = new RichMessage(this.client, data.rich_message);
     }
 
     if ("sender_boost_count" in data) {
@@ -1360,6 +1369,29 @@ class Message extends Base {
   }
 
   /**
+   * Send to the current message
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The message to be sent
+   * @param {Omit<MethodParameters["sendRichMessage"], "richMessage" | "chatId" >} [options={}] - out parameters
+   * @returns {Promise<import("../message/Message").Message & { richMessage: import("../message/RichMessage").RichMessage; }>} - On success, the sent Message is returned.
+   */
+  sendRich(richMessage, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.sendRichMessage({
+      richMessage,
+      chatId: this.chat.id,
+      ...(this.threadId && this.inTopic && { messageThreadId: this.threadId }),
+      replyParameters: {
+        message_id: this.id,
+        ...(this.checklistTaskId && { checklistTaskId: this.checklistTaskId }),
+      },
+      ...options,
+    });
+  }
+
+  /**
    * Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled.
    * @param {string} text - Text of the message to be sent, 1-4096 characters after entities parsing
    * @param {number} draftId - Unique identifier of the message draft; must be non-zero. Changes of drafts with the same identifier are animated.
@@ -1373,6 +1405,27 @@ class Message extends Base {
 
     return this.client.sendMessageDraft({
       text,
+      draftId,
+      chatId: this.chat.id,
+      ...(this.threadId && this.inTopic && { messageThreadId: this.threadId }),
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to stream a partial rich message to a user while the message is being generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat.
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The partial message to be streamed
+   * @param {number} draftId - Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated.
+   * @param {Omit<MethodParameters["sendMessage"], "text" | "chatId" | "draftId">} [options={}] - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  sendRichDraft(richMessage, draftId, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.sendRichMessageDraft({
+      richMessage,
       draftId,
       chatId: this.chat.id,
       ...(this.threadId && this.inTopic && { messageThreadId: this.threadId }),
@@ -1430,7 +1483,7 @@ class Message extends Base {
    * Use this method to edit text and game messages.
    * @param {string} text - New text of the message, 1-4096 characters after entities parsing
    * @param {Omit<MethodParameters["editMessageText"], "text" | "chatId" | "messageId">} [options={}] - out parameters
-   * @returns {Promise<true | (Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; })>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   * @returns {Promise<true | (Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }) | Message & { richMessage: RichMessage; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
    */
   edit(text, options = {}) {
     if (!this.chat) {
@@ -1439,6 +1492,25 @@ class Message extends Base {
 
     return this.client.editMessageText({
       text,
+      chatId: this.chat.id,
+      messageId: this.id,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit rich message and game messages.
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - New rich content of the message; required if text isn't specified
+   * @param {Omit<MethodParameters["editMessageText"], "richMessage" | "chatId" | "messageId">} [options={}] - out parameters
+   * @returns {Promise<true | (import("./Message").Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }) | import("./Message").Message & { richMessage: import("./RichMessage").RichMessage; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   */
+  editRich(richMessage, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.editMessageText({
+      richMessage,
       chatId: this.chat.id,
       messageId: this.id,
       ...options,
@@ -1465,7 +1537,7 @@ class Message extends Base {
   }
 
   /**
-   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
    * @param {MethodParameters["editMessageMedia"]["media"]} media - An object for a new media content of the message
    * @param {Omit<MethodParameters["editMessageMedia"], "media" | "chatId" | "messageId">} [options={}] - out parameters
    * @returns {Promise<true | Message & { editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.

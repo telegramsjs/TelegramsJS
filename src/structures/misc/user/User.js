@@ -103,6 +103,20 @@ class User extends Base {
   }
 
   /**
+   * Send to the current message
+   * @param {import("../../../client/interfaces/RichMessage").InputRichMessage} richMessage - The message to be sent
+   * @param {Omit<MethodParameters["sendRichMessage"], "richMessage" | "chatId" >} [options={}] - out parameters
+   * @returns {Promise<import("../../message/Message").Message & { richMessage: import("../../message/RichMessage").RichMessage; }>} - On success, the sent Message is returned.
+   */
+  sendRich(richMessage, options = {}) {
+    return this.client.sendRichMessage({
+      richMessage,
+      chatId: this.id,
+      ...options,
+    });
+  }
+
+  /**
    * Sends a gift to the given user. The gift can't be converted to Telegram Stars by the user.
    * @param {string} giftId - Identifier of the gift.
    * @param {Omit<MethodParameters["sendGift"], "giftId" | "userId">} [options] - out parameters.

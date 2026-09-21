@@ -275,6 +275,21 @@ class Chat extends Base {
   }
 
   /**
+   * Send to the current message
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The message to be sent
+   * @param {Omit<MethodParameters["sendRichMessage"], "richMessage" | "chatId" >} [options={}] - out parameters
+   * @returns {Promise<import("../message/Message").Message & { richMessage: import("../message/RichMessage").RichMessage; }>} - On success, the sent Message is returned.
+   */
+  sendRich(richMessage, options = {}) {
+    return this.client.sendRichMessage({
+      richMessage,
+      chatId: this.id,
+      ...(this.threadId && this.inTopic && { messageThreadId: this.threadId }),
+      ...options,
+    });
+  }
+
+  /**
    * Verifies a chat on behalf of the organization which is represented by the bot.
    * @param {string} [description] - Custom description for the verification; 0-70 characters. Must be empty if the organization isn't allowed to provide a custom verification description.
    * @returns {Promise<true>} - Returns True on success.

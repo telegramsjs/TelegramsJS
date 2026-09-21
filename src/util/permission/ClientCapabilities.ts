@@ -12,7 +12,8 @@ type ClientCapabilityString =
   | "mainWebApp"
   | "topicsEnabled"
   | "userTopicCreation"
-  | "manageBots";
+  | "manageBots"
+  | "joinRequestQueries";
 
 /**
  * Interface representing the bot capability flags.
@@ -27,6 +28,7 @@ interface ClientCapabilityFlags {
   topicsEnabled?: boolean;
   userTopicCreation?: boolean;
   manageBots?: boolean;
+  joinRequestQueries?: boolean;
 }
 
 /**
@@ -66,6 +68,7 @@ class ClientCapabilities extends PermissionManager<
     topicsEnabled: 7,
     userTopicCreation: 8,
     manageBots: 9,
+    joinRequestQueries: 10,
   };
 }
 

@@ -62,6 +62,7 @@ import {
   InputLocationMessageContent,
   InputTextMessageContent,
   InputVenueMessageContent,
+  InputRichMessageContent,
   InlineQueryResultCachedAudio,
   InlineQueryResultCachedDocument,
   InlineQueryResultCachedGif,
@@ -88,6 +89,7 @@ import {
   SuggestedPostParameters,
   InputChecklist,
   InputProfilePhoto,
+  InputRichMessage,
 } from "./telegram/index";
 
 /**
@@ -711,6 +713,23 @@ export declare class User extends Base {
       >
   >;
   /**
+   * Send to the current message
+   * @param richMessage - The message to be sent
+   * @param options - out parameters
+   * @returns On success, the sent Message is returned.
+   */
+  sendRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["sendRichMessage"],
+      "richMessage" | "chatId"
+    >,
+  ): Promise<
+    Message & {
+      richMessage: RichMessage;
+    }
+  >;
+  /**
    * Sends a gift to the given user or channel chat. The gift can't be converted to Telegram Stars by the receive.
    * @param giftId - Identifier of the gift.
    * @param options - out parameters.
@@ -948,7 +967,8 @@ export type ClientCapabilityString =
   | "mainWebApp"
   | "topicsEnabled"
   | "userTopicCreation"
-  | "manageBots";
+  | "manageBots"
+  | "joinRequestQueries";
 
 /**
  * Interface representing the bot capability flags.
@@ -963,6 +983,7 @@ export interface ClientCapabilityFlags {
   topicsEnabled?: boolean;
   userTopicCreation?: boolean;
   manageBots?: boolean;
+  joinRequestQueries?: boolean;
 }
 
 /**
@@ -2347,6 +2368,23 @@ export declare class MessageReactionUpdated extends Base {
     }
   >;
   /**
+   * Reply to the current message
+   * @param richMessage - The message to be sent
+   * @param options - out parameters
+   * @returns On success, the sent Message is returned.
+   */
+  replyRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["sendRichMessage"],
+      "richMessage" | "chatId"
+    >,
+  ): Promise<
+    Message & {
+      richMessage: RichMessage;
+    }
+  >;
+  /**
    * Use this method to change the chosen reactions on a message. Service messages can't be reacted to. Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel. In albums, bots must react to the first message.
    * @param reaction - A JSON-serialized list of reaction types to set on the message. Currently, as non-premium users, bots can set up to one reaction per message. A custom emoji reaction can be used if it is either already present on the message or explicitly allowed by chat administrators. Paid reactions can't be used by bots
    * @param isBig - Pass True to set the reaction with a big animation
@@ -2362,7 +2400,7 @@ export declare class MessageReactionUpdated extends Base {
     isBig?: boolean,
   ): Promise<true>;
   /**
-   * Use this method to edit text and game messages.
+   * Use this method to edit text, rich and game messages.
    * @param text - New text of the message, 1-4096 characters after entities parsing
    * @param options - out parameters
    * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
@@ -2387,6 +2425,33 @@ export declare class MessageReactionUpdated extends Base {
     | true
     | (Message & {
         content: string;
+        editedUnixTime: number;
+        editedTimestamp: number;
+        editedAt: Date;
+      })
+  >;
+  /**
+   * Use this method to edit rich message and game messages.
+   * @param richMessage - New rich content of the message; required if text isn't specified
+   * @param options - out parameters
+   * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   */
+  editRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["editMessageText"],
+      "richMessage" | "chatId" | "messageId"
+    >,
+  ): Promise<
+    | true
+    | (Message & {
+        content: string;
+        editedUnixTime: number;
+        editedTimestamp: number;
+        editedAt: Date;
+      })
+    | (Message & {
+        richMessage: RichMessage;
         editedUnixTime: number;
         editedTimestamp: number;
         editedAt: Date;
@@ -2424,7 +2489,7 @@ export declare class MessageReactionUpdated extends Base {
       })
   >;
   /**
-   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
    * @param media - An object for a new media content of the message
    * @param options - out parameters
    * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
@@ -2827,6 +2892,23 @@ export declare class MessageOrigin extends Base {
     }
   >;
   /**
+   * Reply to the current message
+   * @param richMessage - The message to be sent
+   * @param options - out parameters
+   * @returns On success, the sent Message is returned.
+   */
+  replyRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["sendRichMessage"],
+      "richMessage" | "chatId"
+    >,
+  ): Promise<
+    Message & {
+      richMessage: RichMessage;
+    }
+  >;
+  /**
    * Use this method to change the chosen reactions on a message. Service messages can't be reacted to. Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel. In albums, bots must react to the first message.
    * @param reaction - A JSON-serialized list of reaction types to set on the message. Currently, as non-premium users, bots can set up to one reaction per message. A custom emoji reaction can be used if it is either already present on the message or explicitly allowed by chat administrators. Paid reactions can't be used by bots
    * @param isBig - Pass True to set the reaction with a big animation
@@ -2842,7 +2924,7 @@ export declare class MessageOrigin extends Base {
     isBig?: boolean,
   ): Promise<true>;
   /**
-   * Use this method to edit text and game messages.
+   * Use this method to edit text, rich and game messages.
    * @param text - New text of the message, 1-4096 characters after entities parsing
    * @param options - out parameters
    * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
@@ -2867,6 +2949,33 @@ export declare class MessageOrigin extends Base {
     | true
     | (Message & {
         content: string;
+        editedUnixTime: number;
+        editedTimestamp: number;
+        editedAt: Date;
+      })
+  >;
+  /**
+   * Use this method to edit rich message and game messages.
+   * @param richMessage - New rich content of the message; required if text isn't specified
+   * @param options - out parameters
+   * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   */
+  editRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["editMessageText"],
+      "richMessage" | "chatId" | "messageId"
+    >,
+  ): Promise<
+    | true
+    | (Message & {
+        content: string;
+        editedUnixTime: number;
+        editedTimestamp: number;
+        editedAt: Date;
+      })
+    | (Message & {
+        richMessage: RichMessage;
         editedUnixTime: number;
         editedTimestamp: number;
         editedAt: Date;
@@ -2904,7 +3013,7 @@ export declare class MessageOrigin extends Base {
       })
   >;
   /**
-   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   *Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
    * @param media - An object for a new media content of the message
    * @param options - out parameters
    * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
@@ -3228,6 +3337,8 @@ export class PollMedia extends Base {
   audio?: Audio;
   /** Media is a general file, information about the file; currently, can't be received in a poll option */
   document?: Document;
+  /** URL of the link */
+  link?: string;
   /** Media is a live photo, information about the live photo */
   livePhoto?: LivePhoto;
   /** Media is a shared location, information about the location */
@@ -4828,6 +4939,23 @@ export declare class SharedUser extends Base {
             video: Video;
           })
       >
+  >;
+  /**
+   * Send to the current message
+   * @param richMessage - The message to be sent
+   * @param options - out parameters
+   * @returns On success, the sent Message is returned.
+   */
+  sendRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["sendRichMessage"],
+      "richMessage" | "chatId"
+    >,
+  ): Promise<
+    Message & {
+      richMessage: RichMessage;
+    }
   >;
   /**
    * Sends a gift to the given user or channel chat. The gift can't be converted to Telegram Stars by the receive.
@@ -6772,6 +6900,10 @@ export declare class Message extends Base {
    */
   entities?: MessageEntities;
   /**
+   * Message is a rich formatted message
+   */
+  rich_message?: RichMessage;
+  /**
    * If the sender of the message boosted the chat, the number of boosts added by the user
    */
   senderBoostCount?: number;
@@ -7381,6 +7513,23 @@ export declare class Message extends Base {
     }
   >;
   /**
+   * Send to the current message
+   * @param richMessage - The message to be sent
+   * @param options - out parameters
+   * @returns On success, the sent Message is returned.
+   */
+  sendRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["sendRichMessage"],
+      "richMessage" | "chatId"
+    >,
+  ): Promise<
+    Message & {
+      richMessage: RichMessage;
+    }
+  >;
+  /**
    * Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled.
    * @param text - Text of the message to be sent, 1-4096 characters after entities parsing
    * @param draftId - Unique identifier of the message draft; must be non-zero. Changes of drafts with the same identifier are animated
@@ -7403,6 +7552,21 @@ export declare class Message extends Base {
     >,
   ): Promise<true>;
   /**
+   * Use this method to stream a partial rich message to a user while the message is being generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat.
+   * @param richMessage - The partial message to be streamed
+   * @param draftId - Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated.
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  sendRichDraft(
+    richMessage: InputRichMessage,
+    draftId: number,
+    options?: Omit<
+      MethodParameters["sendMessage"],
+      "text" | "chatId" | "draftId"
+    >,
+  ): Promise<true>;
+  /**
    * Use this method to change the chosen reactions on a message. Service messages can't be reacted to. Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel. In albums, bots must react to the first message.
    * @param reaction - A JSON-serialized list of reaction types to set on the message. Currently, as non-premium users, bots can set up to one reaction per message. A custom emoji reaction can be used if it is either already present on the message or explicitly allowed by chat administrators. Paid reactions can't be used by bots
    * @param isBig - Pass True to set the reaction with a big animation
@@ -7418,7 +7582,7 @@ export declare class Message extends Base {
     isBig?: boolean,
   ): Promise<true>;
   /**
-   * Use this method to edit text and game messages.
+   * Use this method to edit text, rich and game messages.
    * @param text - New text of the message, 1-4096 characters after entities parsing
    * @param options - out parameters
    * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
@@ -7443,6 +7607,33 @@ export declare class Message extends Base {
     | true
     | (Message & {
         content: string;
+        editedUnixTime: number;
+        editedTimestamp: number;
+        editedAt: Date;
+      })
+  >;
+  /**
+   * Use this method to edit rich message and game messages.
+   * @param richMessage - New rich content of the message; required if text isn't specified
+   * @param options - out parameters
+   * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   */
+  editRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["editMessageText"],
+      "richMessage" | "chatId" | "messageId"
+    >,
+  ): Promise<
+    | true
+    | (Message & {
+        content: string;
+        editedUnixTime: number;
+        editedTimestamp: number;
+        editedAt: Date;
+      })
+    | (Message & {
+        richMessage: RichMessage;
         editedUnixTime: number;
         editedTimestamp: number;
         editedAt: Date;
@@ -7480,7 +7671,7 @@ export declare class Message extends Base {
       })
   >;
   /**
-   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   *Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
    * @param media - An object for a new media content of the message
    * @param options - out parameters
    * @returns On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
@@ -7743,6 +7934,490 @@ export declare class Message extends Base {
         location: Location;
       })
   >;
+}
+
+export class RichMessage extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the rich formatted message
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichMessage,
+  );
+  /** Content of the message */
+  blocks: (
+    | RichBlockParagraph
+    | RichBlockSectionHeading
+    | RichBlockPreformatted
+    | RichBlockFooter
+    | RichBlockDivider
+    | RichBlockMathematicalExpression
+    | RichBlockAnchor
+    | RichBlockList
+    | RichBlockBlockQuotation
+    | RichBlockPullQuotation
+    | RichBlockCollage
+    | RichBlockSlideshow
+    | RichBlockTable
+    | RichBlockDetails
+    | RichBlockMap
+    | RichBlockAnimation
+    | RichBlockAudio
+    | RichBlockPhoto
+    | RichBlockVideo
+    | RichBlockVoiceNote
+    | RichBlockThinking
+  )[];
+  /** True, if the rich message must be shown right-to-left */
+  isRtl?: true;
+}
+
+declare class RichBlockParagraph extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the paragraph block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockParagraph,
+  );
+  /** Type of the block, always "paragraph" */
+  type: "paragraph";
+  /** Text of the block */
+  text: import("@telegram.ts/types").RichText;
+}
+
+declare class RichBlockSectionHeading extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the heading block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockSectionHeading,
+  );
+  /** Type of the block, always "heading" */
+  type: "heading";
+  /** Text of the block */
+  text: import("@telegram.ts/types").RichText;
+  /** Relative size of the text font; 1-6, 1 is the largest, 6 is the smallest */
+  size: 2 | 1 | 3 | 4 | 5 | 6;
+}
+
+declare class RichBlockPreformatted extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the preformatted block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockPreformatted,
+  );
+  /** Type of the block, always "pre" */
+  type: "pre";
+  /** Text of the block */
+  text: import("@telegram.ts/types").RichText;
+  /** The programming language of the text */
+  language?: string;
+}
+
+declare class RichBlockFooter extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the footer block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockFooter,
+  );
+  /** Type of the block, always "footer" */
+  type: "footer";
+  /** Text of the block */
+  text: import("@telegram.ts/types").RichText;
+}
+
+declare class RichBlockDivider extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the divider block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockDivider,
+  );
+  /** Type of the block, always "divider" */
+  type: "divider";
+}
+
+declare class RichBlockMathematicalExpression extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the mathematical expression block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockMathematicalExpression,
+  );
+  /** Type of the block, always "mathematical_expression" */
+  type: "mathematical_expression";
+  /** The mathematical expression in LaTeX format */
+  expression: string;
+}
+
+declare class RichBlockAnchor extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the anchor block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockAnchor,
+  );
+  /** Type of the block, always "anchor" */
+  type: "anchor";
+  /** The name of the anchor */
+  name: string;
+}
+
+declare class RichBlockList extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the list block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockList,
+  );
+  /** Type of the block, always "list" */
+  type: "list";
+  /** Items of the list */
+  items: import("@telegram.ts/types").RichBlockListItem[];
+}
+
+declare class RichBlockBlockQuotation extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the blockquote block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockBlockQuotation,
+  );
+  /** Type of the block, always "blockquote" */
+  type: "blockquote";
+  /** Content of the block */
+  blocks: (
+    | RichBlockParagraph
+    | RichBlockSectionHeading
+    | RichBlockPreformatted
+    | RichBlockFooter
+    | RichBlockDivider
+    | RichBlockMathematicalExpression
+    | RichBlockAnchor
+    | RichBlockList
+    | RichBlockBlockQuotation
+    | RichBlockPullQuotation
+    | RichBlockCollage
+    | RichBlockSlideshow
+    | RichBlockTable
+    | RichBlockDetails
+    | RichBlockMap
+    | RichBlockAnimation
+    | RichBlockAudio
+    | RichBlockPhoto
+    | RichBlockVideo
+    | RichBlockVoiceNote
+    | RichBlockThinking
+  )[];
+  /** Credit of the block */
+  credit?: import("@telegram.ts/types").RichText;
+}
+
+declare class RichBlockPullQuotation extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the pullquote block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockPullQuotation,
+  );
+  /** Type of the block, always "pullquote" */
+  type: "pullquote";
+  /** Text of the block */
+  text: import("@telegram.ts/types").RichText;
+  /** Credit of the block */
+  credit?: import("@telegram.ts/types").RichText;
+}
+
+declare class RichBlockCollage extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the collage block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockCollage,
+  );
+  /** Type of the block, always "collage" */
+  type: "collage";
+  /** Elements of the collage */
+  blocks: (
+    | RichBlockParagraph
+    | RichBlockSectionHeading
+    | RichBlockPreformatted
+    | RichBlockFooter
+    | RichBlockDivider
+    | RichBlockMathematicalExpression
+    | RichBlockAnchor
+    | RichBlockList
+    | RichBlockBlockQuotation
+    | RichBlockPullQuotation
+    | RichBlockCollage
+    | RichBlockSlideshow
+    | RichBlockTable
+    | RichBlockDetails
+    | RichBlockMap
+    | RichBlockAnimation
+    | RichBlockAudio
+    | RichBlockPhoto
+    | RichBlockVideo
+    | RichBlockVoiceNote
+    | RichBlockThinking
+  )[];
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
+}
+
+declare class RichBlockSlideshow extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the slideshow block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockSlideshow,
+  );
+  /** Type of the block, always "slideshow" */
+  type: "slideshow";
+  /** Elements of the slideshow */
+  blocks: (
+    | RichBlockParagraph
+    | RichBlockSectionHeading
+    | RichBlockPreformatted
+    | RichBlockFooter
+    | RichBlockDivider
+    | RichBlockMathematicalExpression
+    | RichBlockAnchor
+    | RichBlockList
+    | RichBlockBlockQuotation
+    | RichBlockPullQuotation
+    | RichBlockCollage
+    | RichBlockSlideshow
+    | RichBlockTable
+    | RichBlockDetails
+    | RichBlockMap
+    | RichBlockAnimation
+    | RichBlockAudio
+    | RichBlockPhoto
+    | RichBlockVideo
+    | RichBlockVoiceNote
+    | RichBlockThinking
+  )[];
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
+}
+
+declare class RichBlockTable extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the table block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockTable,
+  );
+  /** Type of the block, always "table" */
+  type: "table";
+  /** Cells of the table */
+  cells: import("@telegram.ts/types").RichBlockTableCell[][];
+  /** True, if the table has borders */
+  isBordered?: true;
+  /** True, if the table is striped */
+  isStriped?: true;
+  /** Caption of the table */
+  caption?: import("@telegram.ts/types").RichText;
+}
+
+declare class RichBlockDetails extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the details block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockDetails,
+  );
+  /** Type of the block, always "details" */
+  type: "details";
+  /** Always shown summary of the block */
+  summary: import("@telegram.ts/types").RichText;
+  /** Content of the block */
+  blocks: (
+    | RichBlockParagraph
+    | RichBlockSectionHeading
+    | RichBlockPreformatted
+    | RichBlockFooter
+    | RichBlockDivider
+    | RichBlockMathematicalExpression
+    | RichBlockAnchor
+    | RichBlockList
+    | RichBlockBlockQuotation
+    | RichBlockPullQuotation
+    | RichBlockCollage
+    | RichBlockSlideshow
+    | RichBlockTable
+    | RichBlockDetails
+    | RichBlockMap
+    | RichBlockAnimation
+    | RichBlockAudio
+    | RichBlockPhoto
+    | RichBlockVideo
+    | RichBlockVoiceNote
+    | RichBlockThinking
+  )[];
+  /** True, if the content of the block is visible by default */
+  isOpen?: true;
+}
+
+declare class RichBlockMap extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the map block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockMap,
+  );
+  /** Type of the block, always "map" */
+  type: "map";
+  /** Location of the center of the map */
+  location: Location;
+  /** Map zoom level; 13-20 */
+  zoom: 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
+  /** Expected width of the map */
+  width: number;
+  /** Expected height of the map */
+  height: number;
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
+}
+
+declare class RichBlockAnimation extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the animation block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockAnimation,
+  );
+  /** Type of the block, always "animation" */
+  type: "animation";
+  /** The animation */
+  animation: Animation;
+  /** True, if the media preview is covered by a spoiler animation */
+  hasSpoiler?: true;
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
+}
+
+declare class RichBlockAudio extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the audio block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockAudio,
+  );
+  /** Type of the block, always "audio" */
+  type: "audio";
+  /** The audio */
+  audio: Audio;
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
+}
+
+declare class RichBlockPhoto extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the photo block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockPhoto,
+  );
+  /** Type of the block, always "photo" */
+  type: "photo";
+  /** Available sizes of the photo */
+  photo: Photo[];
+  /** True, if the media preview is covered by a spoiler animation */
+  hasSpoiler?: true;
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
+}
+
+declare class RichBlockVideo extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the video block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockVideo,
+  );
+  /** Type of the block, always "video" */
+  type: "video";
+  /** The video */
+  video: Video;
+  /** True, if the media preview is covered by a spoiler animation */
+  hasSpoiler?: true;
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
+}
+
+declare class RichBlockVoiceNote extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the voice note block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockVoiceNote,
+  );
+  /** Type of the block, always "voice_note" */
+  type: "voice_note";
+  /** The voice note */
+  voiceNote: Voice;
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
+}
+
+declare class RichBlockThinking extends Base {
+  /**
+   * @param  client - The client that instantiated this
+   * @param {import("@telegram.ts/types").RichBlockThinking} data - Data about the "Thinking…" placeholder block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockThinking,
+  );
+  /** Type of the block, always "thinking" */
+  type: "thinking";
+  /** Text of the block */
+  text: import("@telegram.ts/types").RichText;
 }
 
 export declare class CallbackQuery extends Base {
@@ -8223,6 +8898,23 @@ export declare class Chat extends Base {
             video: Video;
           })
       >
+  >;
+  /**
+   * Send to the current message
+   * @param richMessage - The message to be sent
+   * @param options - out parameters
+   * @returns On success, the sent Message is returned.
+   */
+  sendRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["sendRichMessage"],
+      "richMessage" | "chatId"
+    >,
+  ): Promise<
+    Message & {
+      richMessage: RichMessage;
+    }
   >;
   /**
    * Verifies a chat on behalf of the organization which is represented by the bot.
@@ -9933,6 +10625,23 @@ export declare class BusinessConnection extends Base {
       >
   >;
   /**
+   * Send to the current message
+   * @param richMessage - The message to be sent
+   * @param options - out parameters
+   * @returns On success, the sent Message is returned.
+   */
+  sendRich(
+    richMessage: InputRichMessage,
+    options?: Omit<
+      MethodParameters["sendRichMessage"],
+      "richMessage" | "chatId"
+    >,
+  ): Promise<
+    Message & {
+      richMessage: RichMessage;
+    }
+  >;
+  /**
    * Marks incoming message as read on behalf of a business account. Requires the can_read_messages business bot right.
    * @param messageId - Unique identifier of the message to mark as read.
    * @param chatId - Unique identifier of the chat in which the message was received. The chat must have been active in the last 24 hours.
@@ -10476,6 +11185,8 @@ export declare class ChatJoinRequest extends Base {
     client: TelegramClient | BaseClient,
     data: import("@telegram.ts/types").ChatJoinRequest,
   );
+  /** Identifier of the join request query. If present, then the bot must call sendChatJoinRequestWebApp or directly call answerChatJoinRequestQuery within 10 seconds. */
+  id?: string;
   /** Identifier of a private chat with the user who sent the join request. The bot can use this identifier for 5 minutes to send messages until the join request is processed, assuming no other administrator contacted the user. */
   userChatId: string;
   /**
@@ -10498,6 +11209,18 @@ export declare class ChatJoinRequest extends Base {
    * Date the request was sent
    */
   get createdAt(): Date;
+  /**
+   * Use this method to process a received chat join request query.
+   * @param result - Result of the query. Must be either “approve” to allow the user to join the chat, “decline” to disallow the user to join the chat, or “queue” to leave the decision to other administrators.
+   * @returns Returns True on success.
+   */
+  answerQuery(result: "approve" | "decline" | "queue"): Promise<true>;
+  /**
+   * Use this method to process a received chat join request query by showing a Mini App to the user before deciding the outcome.
+   * @param webAppUrl - The URL of the Mini App to be opened
+   * @returns Returns True on success.
+   */
+  sendRequestWebApp(webAppUrl: string): Promise<true>;
   /**
    * Use this method to approve a chat join request. The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
    * @returns Returns True on success.
@@ -10763,6 +11486,10 @@ export declare class BaseClient extends EventEmitter {
   sendMessage(
     params: MethodParameters["sendMessage"],
   ): Promise<MethodsLibReturnType["sendMessage"]>;
+  /** Use this method to send rich messages. If the message contains a block with a media element, then the bot must have the right to send the media to the chat. On success, the sent Message is returned. */
+  sendRichMessage(
+    params: MethodParameters["sendRichMessage"],
+  ): Promise<MethodsLibReturnType["sendRichMessage"]>;
   /** Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled. */
   sendMessageDraft(
     params: MethodParameters["sendMessageDraft"],
@@ -10854,6 +11581,10 @@ export declare class BaseClient extends EventEmitter {
   sendDice(
     params: MethodParameters["sendDice"],
   ): Promise<MethodsLibReturnType["sendDice"]>;
+  /** Use this method to stream a partial rich message to a user while the message is being generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat. Returns True on success. */
+  sendRichMessageDraft(
+    params: MethodParameters["sendRichMessageDraft"],
+  ): Promise<MethodsLibReturnType["sendRichMessageDraft"]>;
   /** Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns True on success.
   
 	Example: The ImageBot needs some time to process a request and upload the image. Instead of sending a text message along the lines of "Retrieving image, please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot.
@@ -10977,6 +11708,17 @@ export declare class BaseClient extends EventEmitter {
     userId: number | string,
     chatId?: number | string,
   ): Promise<MethodsLibReturnType["approveChatJoinRequest"]>;
+  /** Use this method to process a received chat join request query. Returns True on success. */
+  answerChatJoinRequestQuery(
+    chatJoinRequestQueryId: string,
+    result: "approve" | "decline" | "queue",
+  ): Promise<MethodsLibReturnType["answerChatJoinRequestQuery"]>;
+  /** Use this method to process a received chat join request query by showing a Mini App to the user before deciding the outcome. Returns True on success. */
+  sendChatJoinRequestWebApp(
+    chatJoinRequestQueryId: string,
+    webAppURL: string,
+  ): Promise<MethodsLibReturnType["sendChatJoinRequestWebApp"]>;
+  /** Use this method to decline a chat join get. The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right. Returns True on success. */
   /** Use this method to decline a chat join get. The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right. Returns True on success. */
   declineChatJoinRequest(
     chatId: number | string,
@@ -11250,7 +11992,7 @@ export declare class BaseClient extends EventEmitter {
   ): Promise<MethodsLibReturnType["transferGift"]>;
   /** A method to get the current Telegram Stars balance of the bot. Requires no parameters. On success, returns a StarAmount object. */
   getMyStarBalance(): Promise<MethodsLibReturnType["getMyStarBalance"]>;
-  /** Use this method to edit text and game messages. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
+  /** Use this method to edit text, rich and game messages. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
   editMessageText(
     params: MethodParameters["editMessageText"],
   ): Promise<MethodsLibReturnType["editMessageText"]>;
@@ -11258,7 +12000,7 @@ export declare class BaseClient extends EventEmitter {
   editMessageCaption(
     params: MethodParameters["editMessageCaption"],
   ): Promise<MethodsLibReturnType["editMessageCaption"]>;
-  /** Use this method to edit animation, audio, document, live photo, photo, or video messages, or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
+  /**Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
   editMessageMedia(
     params: MethodParameters["editMessageMedia"],
   ): Promise<MethodsLibReturnType["editMessageMedia"]>;
@@ -12459,6 +13201,14 @@ export declare class ChatFullInfo extends Chat {
    * Information about the corresponding channel chat; for direct messages chats only
    */
   parentChat?: Chat;
+  /**
+   * The number of Telegram Stars a general user have to pay to send a message to the chat
+   */
+  paidMessageStarCount?: number;
+  /**
+   * The bot that processes join request queries in the chat. The field is only available to chat administrators.
+   */
+  guardBot?: User;
   /**
    * The location of the chat.
    */
@@ -13884,6 +14634,13 @@ export declare class InputMessageContentBuilder {
     text: InputTextMessageContent["message_text"],
     options?: Omit<InputTextMessageContent, "message_text">,
   ): InputTextMessageContent;
+  /**
+   * Represents the [content](https://core.telegram.org/bots/api/#inputmessagecontent) of a rich text message to be sent as the result of an inline query.
+   * @param text - Text of the message to be sent, 1-4096 characters.
+   */
+  static richText(
+    text: InputRichMessageContent["rich_message"],
+  ): InputRichMessageContent;
   /**
    * Represents the [content](https://core.telegram.org/bots/api/#inputmessagecontent) of a location message to be sent as the result of an inline query.
    * @param latitude - Latitude of the location in degrees.

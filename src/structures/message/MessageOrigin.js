@@ -235,6 +235,31 @@ class MessageOrigin extends Base {
   }
 
   /**
+   * Reply to the current message
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The message to be sent
+   * @param {Omit<MethodParameters["sendRichMessage"], "richMessage" | "chatId" >} [options={}] - out parameters
+   * @returns {Promise<import("../message/Message").Message & { richMessage: import("../message/RichMessage").RichMessage; }>} - On success, the sent Message is returned.
+   */
+  replyRich(richMessage, options = {}) {
+    if (!this.id) {
+      throw new TelegramError(ErrorCodes.MessageIdNotAvailable);
+    }
+
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.sendRichMessage({
+      richMessage,
+      chatId: this.chat.id,
+      replyParameters: {
+        message_id: this.id,
+      },
+      ...options,
+    });
+  }
+
+  /**
    * Use this method to change the chosen reactions on a message. Service messages of some types can't be reacted to. Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel. In albums, bots must react to the first message.
    * @param {string | import("@telegram.ts/types").ReactionType | import("@telegram.ts/types").ReactionType[] | ReactionType | ReactionType[]} reaction - A JSON-serialized list of reaction types to set on the message. Currently, as non-premium users, bots can set up to one reaction per message. A custom emoji reaction can be used if it is either already present on the message or explicitly allowed by chat administrators. Paid reactions can't be used by bots
    * @param {boolean} [isBig] - Pass True to set the reaction with a big animation
@@ -288,7 +313,7 @@ class MessageOrigin extends Base {
    * Use this method to edit text and game messages.
    * @param {string} text - New text of the message, 1-4096 characters after entities parsing
    * @param {Omit<MethodParameters["editMessageText"], "text" | "chatId" | "messageId">} [options={}] - out parameters
-   * @returns {Promise<true | (import("./Message").Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; })>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   * @returns {Promise<true | (import("./Message").Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }) | import("./Message").Message & { richMessage: import("./RichMessage").RichMessage; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
    */
   edit(text, options = {}) {
     if (!this.id) {
@@ -301,6 +326,29 @@ class MessageOrigin extends Base {
 
     return this.client.editMessageText({
       text,
+      chatId: this.chat.id,
+      messageId: this.id,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit rich message and game messages.
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - New rich content of the message; required if text isn't specified
+   * @param {Omit<MethodParameters["editMessageText"], "richMessage" | "chatId" | "messageId">} [options={}] - out parameters
+   * @returns {Promise<true | (import("./Message").Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }) | import("./Message").Message & { richMessage: import("./RichMessage").RichMessage; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   */
+  editRich(richMessage, options = {}) {
+    if (!this.id) {
+      throw new TelegramError(ErrorCodes.MessageIdNotAvailable);
+    }
+
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.editMessageText({
+      richMessage,
       chatId: this.chat.id,
       messageId: this.id,
       ...options,
@@ -356,7 +404,7 @@ class MessageOrigin extends Base {
   }
 
   /**
-   * Use this method to edit animation, audio, document, photo, or video messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
    * @param {MethodParameters["editMessageMedia"]["media"]} media - An object for a new media content of the message
    * @param {Omit<MethodParameters["editMessageMedia"], "media" | "chatId" | "messageId">} [options={}] - out parameters
    * @returns {Promise<true | import("./Message").Message & { editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.

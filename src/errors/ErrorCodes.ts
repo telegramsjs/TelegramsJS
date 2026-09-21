@@ -8,6 +8,7 @@ enum ErrorCodes {
   MessageIdNotAvailable = "MESSAGE_ID_NOT_AVAILABLE",
   ChatIdNotAvailable = "CHAT_ID_NOT_AVAILABLE",
   GuestQueryIdNotAvailable = "GUEST_QUERY_ID_NOT_AVAILABLE",
+  ChatQueryIdNotAvailable = "CHAT_QUERY_ID_NOT_AVAILABLE",
   FileRetrievalFailed = "FILE_RETRIEVAL_FAILED",
   FileDownloadFailed = "FILE_DOWNLOAD_FAILED",
   FileWriteInvalidType = "FILE_WRITE_INVALID_TYPE",
@@ -36,6 +37,8 @@ const ErrorMessages = {
     "The chat ID related to this message is not available.",
   [ErrorCodes.GuestQueryIdNotAvailable]:
     "The guest query ID related to this message is not available.",
+  [ErrorCodes.ChatQueryIdNotAvailable]:
+    "The chat query ID related to this message is not available.",
   [ErrorCodes.FileRetrievalFailed]:
     "Failed to retrieve the file from the path: <file_path>.",
   [ErrorCodes.FileDownloadFailed]:

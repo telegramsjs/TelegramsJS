@@ -33,6 +33,7 @@ class ClientUser extends User {
       topicsEnabled: Boolean(data.has_topics_enabled),
       userTopicCreation: Boolean(data.allows_users_to_create_topics),
       manageBots: Boolean(data.can_manage_bots),
+      joinRequestQueries: Boolean(data.supports_join_request_queries),
     });
 
     this._patch(data);

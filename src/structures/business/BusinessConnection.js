@@ -150,6 +150,20 @@ class BusinessConnection extends Base {
   }
 
   /**
+   * Send to the current message
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The message to be sent
+   * @param {Omit<MethodParameters["sendRichMessage"], "richMessage" | "chatId" >} [options={}] - out parameters
+   * @returns {Promise<import("../message/Message").Message & { richMessage: import("../message/RichMessage").RichMessage; }>} - On success, the sent Message is returned.
+   */
+  sendRich(richMessage, options = {}) {
+    return this.client.sendRichMessage({
+      richMessage,
+      chatId: this.userChatId,
+      ...options,
+    });
+  }
+
+  /**
    * Marks incoming message as read on behalf of a business account. Requires the can_read_messages business bot right.
    * @param {string | number} messageId - Unique identifier of the message to mark as read.
    * @param {string | number} [chatId] - Unique identifier of the chat in which the message was received. The chat must have been active in the last 24 hours.
