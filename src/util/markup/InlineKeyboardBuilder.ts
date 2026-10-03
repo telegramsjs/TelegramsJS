@@ -14,9 +14,11 @@ class InlineKeyboardBuilder {
   /**
    * Creates an instance of InlineKeyboard.
    * @param inline_keyboard - A 2D array of inline keyboard buttons.
+   * @param force_reply - Pass True if the reply interface must be shown to the user, as if they had manually selected the bot's message and tapped 'Reply'. The value of the field can't be changed when the inline keyboard is edited.
    */
   constructor(
     public readonly inline_keyboard: InlineKeyboardButton[][] = [[]],
+    public readonly force_reply?: boolean,
   ) {}
 
   /**
@@ -354,6 +356,27 @@ class InlineKeyboardBuilder {
   }
 
   /**
+   * If set, then the button is disabled and does nothing
+   * @param text - The button text.
+   * @returns The disabled button.
+   */
+  disabled(text: string) {
+    return this.add(InlineKeyboardBuilder.disabled(text));
+  }
+
+  /**
+   * If set, then the button is disabled and does nothing
+   * @param text - The button text.
+   * @returns The disabled button.
+   */
+  static disabled(text: string) {
+    return {
+      text,
+      disabled: {},
+    };
+  }
+
+  /**
    * Creates a deep copy of the current InlineKeyboard instance.
    * @returns A new instance of InlineKeyboard with the same buttons.
    */
@@ -407,6 +430,12 @@ class InlineKeyboardBuilder {
       InlineKeyboardBuilder | { inline_keyboard: InlineKeyboardButton[][] },
   ): boolean {
     if (!other) return false;
+
+    if (
+      other instanceof InlineKeyboardBuilder &&
+      this.force_reply !== other.force_reply
+    )
+      return false;
 
     if (this.inline_keyboard.length !== other.inline_keyboard.length)
       return false;

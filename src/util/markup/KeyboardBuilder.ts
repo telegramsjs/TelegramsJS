@@ -23,6 +23,11 @@ class KeyboardBuilder {
   public selective?: boolean;
 
   /**
+   * Pass True if the reply interface must be shown to the user, as if they had manually selected the bot's message and tapped 'Reply'
+   */
+  public force_reply?: boolean;
+
+  /**
    * Indicates whether the keyboard is a one-time keyboard.
    */
   public one_time_keyboard?: boolean;
@@ -344,6 +349,16 @@ class KeyboardBuilder {
   }
 
   /**
+   * Sets the keyboard as force reply or not.
+   * @param force - Pass True if the reply interface must be shown to the user, as if they had manually selected the bot's message and tapped 'Reply'.
+   * @returns The current instance for chaining.
+   */
+  forceReplay(force = false): this {
+    this.force_reply = force;
+    return this;
+  }
+
+  /**
    * Sets the keyboard as a one-time keyboard or not.
    * @param isEnabled - Indicates whether the keyboard should be a one-time keyboard.
    * @returns The current instance for chaining.
@@ -384,6 +399,9 @@ class KeyboardBuilder {
     }
     if (this.selective !== undefined) {
       clone.selective = this.selective;
+    }
+    if (this.force_reply !== undefined) {
+      clone.force_reply = this.force_reply;
     }
     if (this.one_time_keyboard !== undefined) {
       clone.one_time_keyboard = this.one_time_keyboard;
@@ -458,6 +476,7 @@ class KeyboardBuilder {
 
     if (this.is_persistent !== other.is_persistent) return false;
     if (this.selective !== other.selective) return false;
+    if (this.force_reply !== other.force_reply) return false;
     if (this.one_time_keyboard !== other.one_time_keyboard) return false;
     if (this.resize_keyboard !== other.resize_keyboard) return false;
     if (this.input_field_placeholder !== other.input_field_placeholder)
@@ -699,6 +718,7 @@ class KeyboardBuilder {
         input_field_placeholder: this.input_field_placeholder,
       }),
       ...(this.selective !== undefined && { selective: this.selective }),
+      ...(this.force_reply !== undefined && { force_reply: this.force_reply }),
       ...(this.resize_keyboard !== undefined && {
         resize_keyboard: this.resize_keyboard,
       }),
