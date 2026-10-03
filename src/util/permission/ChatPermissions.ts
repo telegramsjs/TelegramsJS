@@ -22,7 +22,8 @@ type ChatPermissionString =
   | "manageTopics"
   | "manageTags"
   | "reactToMessages"
-  | "manageDirectMessages";
+  | "manageDirectMessages"
+  | "welcomeMessages";
 
 /**
  * Interface representing the chat permission flags.
@@ -47,6 +48,7 @@ interface ChatPermissionFlags {
   manageTags?: boolean;
   reactToMessages?: boolean;
   manageDirectMessages?: boolean;
+  welcomeMessages?: boolean;
 }
 
 /**
@@ -94,8 +96,9 @@ class ChatPermissions extends PermissionManager<
     manageTags: 15,
     reactToMessages: 16,
     manageDirectMessages: 17,
-    isAnonymous: 18,
-    editTag: 19,
+    welcomeMessages: 18,
+    isAnonymous: 19,
+    editTag: 20,
   };
 }
 

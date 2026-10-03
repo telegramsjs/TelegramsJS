@@ -143,6 +143,10 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
+    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
+    receiverUserId?: number;
+    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
+    callbackQueryId?: string;
     /** Text of the message to be sent, 1-4096 characters after entities parsing */
     text: string;
     /** Mode for parsing entities in the message text. See formatting options for more details. */
@@ -245,7 +249,7 @@ export type ApiMethods = {
     messageId: string | number;
   }): import("../../structures/message/Message").Message;
 
-  /** Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages. On success, an array of MessageId of the sent messages is returned. */
+  /** Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages. On success, an Array of MessageId of the sent messages is returned. */
   forwardMessages(args: {
     /** Unique identifier for the target chat or username of the target channel (bot, supergroup or channel in the format @username) */
     chatId: number | string;
@@ -303,7 +307,7 @@ export type ApiMethods = {
       | ForceReply;
   }): number;
 
-  /** Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages,  and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correctOptionId is known to the bot. The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message. Album grouping is kept for copied messages. On success, an array of MessageId of the sent messages is returned. */
+  /** Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages,  and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correctOptionId is known to the bot. The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message. Album grouping is kept for copied messages. On success, an Array of MessageId of the sent messages is returned. */
   copyMessages(args: {
     /** Unique identifier for the target chat or username of the target channel (bot, supergroup or channel in the format @username) */
     chatId: number | string;
@@ -607,6 +611,10 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number | string;
+    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
+    receiverUserId?: number;
+    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
+    callbackQueryId?: string;
     /** Animation to send. Pass a fileId as String to send an animation that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an animation from the Internet, or upload a new animation using multipart/form-data. */
     animation: MediaDataParam;
     /** Duration of sent animation in seconds */
@@ -667,6 +675,10 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number | string;
+    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
+    receiverUserId?: number;
+    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
+    callbackQueryId?: string;
     /** Audio file to send. Pass a fileId as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. */
     voice: MediaDataParam;
     /** Voice message caption, 0-1024 characters after entities parsing */
@@ -708,6 +720,10 @@ export type ApiMethods = {
     chatId: number | string;
     /** Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only */
     messageThreadId?: string | number;
+    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
+    receiverUserId?: number;
+    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
+    callbackQueryId?: string;
     /** Video note to send. Pass a fileId as String to send a video note that exists on the Telegram servers (recommended) or upload a new video using multipart/form-data.. Sending video notes by a URL is currently unsupported */
     videoNote: MediaDataParam;
     /** Duration of sent video in seconds */
@@ -746,7 +762,7 @@ export type ApiMethods = {
     videoNote: import("../../structures/media/video/VideoNote").VideoNote;
   };
 
-  /** Use this method to send a group of photos, videos, documents or audios as an album. Documents and audio files can be only grouped in an album with messages of the same type. On success, an array of Messages that were sent is returned. */
+  /** Use this method to send a group of photos, videos, documents or audios as an album. Documents and audio files can be only grouped in an album with messages of the same type. On success, an Array of Messages that were sent is returned. */
   sendMediaGroup(args: {
     /** Unique identifier of the business connection on behalf of which the message will be sent */
     businessConnectionId?: string;
@@ -757,13 +773,10 @@ export type ApiMethods = {
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
     /** An array describing messages to be sent, must include 2-10 items */
-    media: ReadonlyArray<
-      | InputMediaAudio
-      | InputMediaDocument
-      | InputMediaLivePhoto
-      | InputMediaPhoto
-      | InputMediaVideo
-    >;
+    media:
+      | ReadonlyArray<InputMediaAudio>
+      | ReadonlyArray<InputMediaDocument>
+      | ReadonlyArray<InputMediaLivePhoto | InputMediaPhoto | InputMediaVideo>;
     /** Sends the messages silently. Users will receive a notification with no sound. */
     disableNotification?: boolean;
     /** Protects the contents of the sent messages from forwarding and saving */
@@ -802,13 +815,17 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
+    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
+    receiverUserId?: number;
+    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
+    callbackQueryId?: string;
     /** Latitude of the location */
     latitude: number;
     /** Longitude of the location */
     longitude: number;
     /** The radius of uncertainty for the location, measured in meters; 0-1500 */
     horizontalAccuracy?: number;
-    /** Period in seconds during which the location will be updated (see Live Locations, should be between 60 and 86400, or 0x7FFFFFFF for live locations that can be edited indefinitely. */
+    /** Period in seconds during which the location will be updated (see Live Locations), must be between 60 and 86400, or 0x7FFFFFFF for live locations that can be edited indefinitely. Must be 0 for ephemeral messages. */
     livePeriod?: number;
     /** The direction in which user is moving, in degrees; 1-360. For active live locations only. */
     heading?: number;
@@ -900,7 +917,7 @@ export type ApiMethods = {
     messageThreadId?: number;
     /** The number of Telegram Stars that must be paid to buy access to the media; 1-25000 */
     starCount: number;
-    /** An array describing the media to be sent; up to 10 items */
+    /** An Array describing the media to be sent; up to 10 items */
     media: InputPaidMedia[];
     /** Bot-defined paid media payload, 0-128 bytes. This will not be displayed to the user, use it for your internal processes. */
     payload?: string;
@@ -942,6 +959,10 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
+    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
+    receiverUserId?: number;
+    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
+    callbackQueryId?: string;
     /** Latitude of the venue */
     latitude: number;
     /** Longitude of the venue */
@@ -990,6 +1011,10 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
+    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
+    receiverUserId?: number;
+    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
+    callbackQueryId?: string;
     /** Contact's phone number */
     phoneNumber: string;
     /** Contact's first name */
@@ -1178,7 +1203,7 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated. */
     draftId: number;
-    /** The partial message to be streamed */
+    /** The partial message to be streamed. Direct upload of new files isn't supported. */
     richMessage: InputRichMessage;
   }): true;
 
@@ -1487,7 +1512,7 @@ export type ApiMethods = {
   sendChatJoinRequestWebApp(args: {
     /** Unique identifier of the join request query */
     chatJoinRequestQueryId: string;
-    /** The URL of the Mini App to be opened */
+    /** An HTTPS URL of a Web App to be opened with additional data as specified in Initializing Web Apps */
     webAppUrl: string;
   }): true;
 
@@ -1605,7 +1630,7 @@ export type ApiMethods = {
     userId: string | number;
   }): import("../../structures/chat/ChatMember").ChatMember;
 
-  /** Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user. On success, an array of Message objects is returned. */
+  /** Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user. On success, an Array of Message objects is returned. */
   getUserPersonalChatMessages(args: {
     /** Unique identifier for the target user */
     user_id: number;
@@ -1629,6 +1654,7 @@ export type ApiMethods = {
 
   /** Use this method to get custom emoji stickers, which can be used as a forum topic icon by any user. Requires no parameters. Returns an Array of Sticker objects. */
   getForumTopicIconStickers(): import("../../structures/media/Sticker").Sticker[];
+
   /** Use this method to create a topic in a forum supergroup chat or a private chat with a user. In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator right. Returns information about the created topic as a ForumTopic object. */
   createForumTopic(args: {
     /** Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername) */
@@ -2055,7 +2081,7 @@ export type ApiMethods = {
     entities?: MessageEntity[];
     /** Link preview generation options for the message */
     linkPreviewOptions?: LinkPreviewOptions;
-    /** New rich content of the message; required if text isn't specified */
+    /** New rich content of the message; required if text isn't specified. Direct upload of new files isn't supported when an inline message is edited. */
     richMessage?: InputRichMessage;
     /** An object for an inline keyboard. */
     replyMarkup?: InlineKeyboardMarkup;
@@ -2157,6 +2183,70 @@ export type ApiMethods = {
     replyMarkup?: InlineKeyboardMarkup;
   }): Omit<import("../../structures/media/poll/Poll").Poll, "close">;
 
+  /** Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  editEphemeralMessageText(args: {
+    /** Unique identifier for the target chat or username of the target supergroup in the format `@username` */
+    chatId: number | string;
+    /** Identifier of the user who received the message */
+    receiverUserId: string | number;
+    /** Identifier of the ephemeral message to edit */
+    ephemeralMessageId: string | number;
+    /** New text of the message, 1-4096 characters after entity parsing */
+    text: string;
+    /** Mode for parsing entities in the message text. See formatting options for more details. */
+    parseMode?: ParseMode;
+    /** A list of special entities that appear in message text, which can be specified instead of parse_mode */
+    entities?: MessageEntity[];
+    /** Link preview generation options for the message */
+    linkPreviewOptions?: LinkPreviewOptions;
+    /** An object for an inline keyboard */
+    replyMarkup?: InlineKeyboardMarkup;
+  }): true;
+
+  /** Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  editEphemeralMessageMedia(args: {
+    /** Unique identifier for the target chat or username of the target supergroup in the format `@username` */
+    chatId: number | string;
+    /** Identifier of the user who received the message */
+    receiverUserId: string | number;
+    /** Identifier of the ephemeral message to edit */
+    ephemeralMessageId: string | number;
+    /** An object for the new media content of the message. A new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. */
+    media: InputMedia;
+    /** An object for an inline keyboard */
+    replyMarkup?: InlineKeyboardMarkup;
+  }): true;
+
+  /** Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  editEphemeralMessageCaption(args: {
+    /** Unique identifier for the target chat or username of the target supergroup in the format `@username` */
+    chatId: number | string;
+    /** Identifier of the user who received the message */
+    receiverUserId: string | number;
+    /** Identifier of the ephemeral message to edit */
+    ephemeralMessageId: string | number;
+    /** New caption of the message, 0-1024 characters after entities parsing */
+    caption?: string;
+    /** Mode for parsing entities in the message caption. See formatting options for more details. */
+    parseMode?: ParseMode;
+    /** A list of special entities that appear in the caption, which can be specified instead of parse_mode */
+    captionEntities?: MessageEntity[];
+    /** An object for an inline keyboard */
+    replyMarkup?: InlineKeyboardMarkup;
+  }): true;
+
+  /** Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  editEphemeralMessageReplyMarkup(args: {
+    /** Unique identifier for the target chat or username of the target supergroup in the format `@username` */
+    chatId: number | string;
+    /** Identifier of the user who received the message */
+    receiverUserId: string | number;
+    /** Identifier of the ephemeral message to edit */
+    ephemeralMessageId: string | number;
+    /** An object for an inline keyboard */
+    replyMarkup?: InlineKeyboardMarkup;
+  }): true;
+
   /** Use this method to delete a message, including service messages, with the following limitations:
   - A message can only be deleted if it was sent less than 48 hours ago.
   - Service messages about a supergroup, channel, or forum topic creation can't be deleted.
@@ -2173,6 +2263,16 @@ export type ApiMethods = {
     chatId: number | string;
     /** Identifier of the message to delete */
     messageId: string | number;
+  }): true;
+
+  /** Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline. Returns True on success. */
+  deleteEphemeralMessage(args: {
+    /** Unique identifier for the target chat or username of the target supergroup in the format `@username` */
+    chatId: number | string;
+    /** Identifier of the user who received the message */
+    receiverUserId: string | number;
+    /** Identifier of the ephemeral message to delete */
+    ephemeralMessageId: string | number;
   }): true;
 
   /** Use this method to delete multiple messages simultaneously. Returns True on success. */
@@ -2223,6 +2323,10 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
+    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
+    receiverUserId?: number;
+    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
+    callbackQueryId?: string;
     /** Sticker to send. Pass a fileId as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a .WEBP sticker from the Internet, or upload a new .WEBP, .TGS, or .WEBM sticker using multipart/form-data. Video and animated stickers can't be sent via an HTTP URL. */
     sticker: MediaDataParam;
     /** Emoji associated with the sticker; only for just uploaded stickers */
@@ -2505,7 +2609,7 @@ export type ApiMethods = {
   answerInlineQuery(args: {
     /** Unique identifier for the answered query */
     inlineQueryId: string;
-    /** An array of results for the inline query */
+    /** An Array of results for the inline query */
     results: readonly InlineQueryResult[];
     /** The maximum amount of time in seconds that the result of the inline query may be cached on the server. Defaults to 300. */
     cacheTime?: number;
@@ -2574,7 +2678,7 @@ export type ApiMethods = {
     prices: readonly LabeledPrice[];
     /** The maximum accepted amount for tips in the smallest units of the currency (integer, not float/double). For example, for a maximum tip of US$ 1.45 pass maxTipAmount = 145. See the exp parameter in currencies.json, it shows the number of digits past the decimal point for each currency (2 for the majority of currencies). Defaults to 0. Not supported for payments in Telegram Stars. */
     maxTipAmount?: number;
-    /** An array of suggested amounts of tips in the smallest units of the currency (integer, not float/double). At most 4 suggested tip amounts can be specified. The suggested tip amounts must be positive, passed in a strictly increased order and must not exceed maxTipAmount. */
+    /** An Array of suggested amounts of tips in the smallest units of the currency (integer, not float/double). At most 4 suggested tip amounts can be specified. The suggested tip amounts must be positive, passed in a strictly increased order and must not exceed maxTipAmount. */
     suggestedTipAmounts?: number[];
     /** Unique deep-linking parameter. If left empty, forwarded copies of the sent message will have a Pay button, allowing multiple users to pay directly from the forwarded message, using the same invoice. If non-empty, forwarded copies of the sent message will have a URL button with a deep link to the bot (instead of a Pay button), with the value used as the start parameter */
     startParameter?: string;
@@ -2640,7 +2744,7 @@ export type ApiMethods = {
     subscriptionPeriod?: number;
     /** The maximum accepted amount for tips in the smallest units of the currency (integer, not float/double). For example, for a maximum tip of US$ 1.45 pass maxTipAmount = 145. See the exp parameter in currencies.json, it shows the number of digits past the decimal point for each currency (2 for the majority of currencies). Defaults to 0 */
     maxTipAmount?: number;
-    /** An array of suggested amounts of tips in the smallest units of the currency (integer, not float/double). At most 4 suggested tip amounts can be specified. The suggested tip amounts must be positive, passed in a strictly increased order and must not exceed maxTipAmount. */
+    /** An Array of suggested amounts of tips in the smallest units of the currency (integer, not float/double). At most 4 suggested tip amounts can be specified. The suggested tip amounts must be positive, passed in a strictly increased order and must not exceed maxTipAmount. */
     suggestedTipAmounts?: number[];
     /** Data about the invoice, which will be shared with the payment provider. A detailed description of required fields should be provided by the payment provider. */
     providerData?: string;
@@ -2712,7 +2816,7 @@ export type ApiMethods = {
     shippingQueryId: string;
     /** Pass True if delivery to the specified address is possible and False if there are any problems (for example, if delivery to the specified address is not possible) */
     ok: boolean;
-    /** Required if ok is True. An array of available shipping options. */
+    /** Required if ok is True. An Array of available shipping options. */
     shippingOptions?: readonly ShippingOption[];
     /** Required if ok is False. Error message in human readable form that explains why it is impossible to complete the order (e.g. "Sorry, delivery to your desired address is unavailable'). Telegram will display this message to the user. */
     errorMessage?: string;
@@ -2750,7 +2854,7 @@ export type ApiMethods = {
   setPassportDataErrors(args: {
     /** User identifier */
     userId: string | number;
-    /** An array describing the errors */
+    /** An Array describing the errors */
     errors: readonly PassportElementError[];
   }): true;
 
@@ -2977,6 +3081,22 @@ export interface InputMediaLocation {
   longitude: number;
   /** The radius of uncertainty for the location, measured in meters; 0-1500 */
   horizontal_accuracy?: number;
+}
+
+/** Represents a voice message file to be sent. */
+export interface InputMediaVoiceNote {
+  /** Type of the media, must be voice_note */
+  type: "voice_note";
+  /** File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://\<file_attach_name>" to upload a new one using multipart/form-data under \<file_attach_name> name. More information on Sending Files » */
+  media: MediaDataParam;
+  /** Caption of the voice message to be sent, 0-1024 characters after entities parsing */
+  caption?: string;
+  /** Mode for parsing entities in the voice message caption. See formatting options for more details. */
+  parseMode?: ParseMode;
+  /** List of special entities that appear in the caption, which can be specified instead of parse_mode */
+  captionEntities?: MessageEntity[];
+  /** Duration of the voice message in seconds */
+  duration?: number;
 }
 
 /** This object contains information about one answer option in a poll to send. */

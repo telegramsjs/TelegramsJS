@@ -27,12 +27,12 @@ class UniqueGiftInfo extends Base {
     }
 
     if ("last_resale_currency" in data) {
-      /** For gifts bought from other users, the currency in which the payment for the gift was done. Currently, one of “XTR” for Telegram Stars or “TON” for toncoins. */
+      /** For gifts bought from other users, the currency in which the payment for the gift was done. Currently, one of “XTR” for Telegram Stars or “TON” for TON grams. */
       this.lastResaleCurrency = data.last_resale_currency;
     }
 
     if ("last_resale_amount" in data) {
-      /** For gifts bought from other users, the price paid for the gift in either Telegram Stars or nanotoncoins */
+      /** For gifts bought from other users, the price paid for the gift in either Telegram Stars or nanograms */
       this.lastResaleAmount = data.last_resale_amount;
     }
 

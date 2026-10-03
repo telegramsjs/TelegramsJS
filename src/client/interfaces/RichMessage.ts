@@ -7,12 +7,21 @@ import type {
   Voice,
   User,
 } from "./Message";
+import type {
+  InputMediaAnimation,
+  InputMediaAudio,
+  InputMediaPhoto,
+  InputMediaVideo,
+  InputMediaVoiceNote,
+} from "./Methods";
 
-/** Describes a rich message to be sent. Exactly one of the fields html or markdown must be used.
+/** Describes a rich message to be sent. Exactly one of the fields html, markdown, or blocks must be used.
  *
- * Rich messages support advanced structured formatting options like headings, lists, tables, media, block quotations, collapsible blocks, footnotes, and formulas. Telegram clients will render them accordingly. You can specify rich message content using Markdown-style or HTML-style formatting.
+ * Rich messages support advanced structured formatting options like headings, lists, tables, media, block quotations, collapsible blocks, footnotes, and formulas. Telegram clients will render them accordingly. You can specify rich message content using Markdown-style or HTML-style formatting, or explicit blocks.
  *
  * Plain URLs, e-mail addresses, username mentions, hashtags, cashtags, bot commands, phone numbers, and bank card numbers are detected automatically. To disable automatic entity detection, pass True in the skip_entity_detection field. Note that Telegram clients will display an alert to the user before opening an inline link ('Open this link?' together with the full URL).
+ *
+ * When Markdown-style or HTML-style formatting is used, you can use links in the form tg://photo?id=..., tg://video?id=..., and tg://audio?id=... instead of an HTTP URL to reuse previously uploaded files or upload a new file.
  *
  * #### Rich Message Limits
  *
@@ -286,14 +295,31 @@ import type {
  * - Formula source is treated as raw LaTeX.
  * - See date-time entity formatting for more details about supported date-time formats. */
 export interface InputRichMessage {
-  /** Content of the rich message to send described using HTML formatting. See rich message formatting options for more details. */
+  /** Content of the rich message to send described as a list of blocks */
+  blocks?: InputRichBlock[];
+  /** Content of the rich message to send described using HTML formatting. See rich message formatting options for more details. Use media field to specify the media used in the message. */
   html?: string;
-  /** Content of the rich message to send described using Markdown formatting. See rich message formatting options for more details. */
+  /** Content of the rich message to send described using Markdown formatting. See rich message formatting options for more details. Use media field to specify the media used in the message. */
   markdown?: string;
+  /** List of media that are specified in the markdown or html fields using tg://photo?id=, tg://video?id=, and tg://audio?id= links */
+  media?: InputRichMessageMedia[];
   /** Pass True if the rich message must be shown right-to-left */
   is_rtl?: boolean;
   /** Pass True to skip automatic detection of entities (e.g., URLs, email addresses, username mentions, hashtags, cashtags, bot commands, or phone numbers) in the text */
   skip_entity_detection?: boolean;
+}
+
+/** Describes a media element embedded in an outgoing rich message. */
+export interface InputRichMessageMedia {
+  /** Unique identifier of the media used in a tg://photo?id=, tg://video?id=, or tg://audio?id= link. 1-64 characters, only A-Z, a-z, 0-9, _ and - are allowed. */
+  id: string;
+  /** The media to be sent. Everything except the media itself and its properties is ignored. */
+  media:
+    | InputMediaAnimation
+    | InputMediaAudio
+    | InputMediaPhoto
+    | InputMediaVideo
+    | InputMediaVoiceNote;
 }
 
 /** This object represents a rich formatted text. Currently, it can be either a String for plain text, an Array of RichText, or any of the following types:
@@ -872,10 +898,276 @@ export interface RichBlockVoiceNote {
   caption?: RichBlockCaption;
 }
 
-/** A block with a “Thinking…” placeholder, corresponding to the custom HTML tag \<tg-thinking>. The block may be used only in sendRichMessageDraft, therefore it can't be received in messages. See https://t.me/addemoji/AIActions for examples of custom emoji, which are recommended for usage in the block. */
+/** A block with a “Thinking…” placeholder, corresponding to the custom HTML tag \<tg-thinking>. The block may be used only in sendRichMessageDraft, therefore it can't be received in messages. See https://t.me/addemoji/AIActions for examples of custom emoji that are recommended for usage in the block. */
 export interface RichBlockThinking {
   /** Type of the block, always “thinking” */
   type: "thinking";
-  /** Text of the block. See https://t.me/addemoji/AIActions for examples of custom emoji, which are recommended for usage in the block. */
+  /** Text of the block. See https://t.me/addemoji/AIActions for examples of custom emoji that are recommended for usage in the block. */
+  text: RichText;
+}
+
+/** An item of a list to be sent. */
+export interface InputRichBlockListItem {
+  /** The content of the item */
+  blocks: InputRichBlock[];
+  /** Pass True if the item has a checkbox */
+  has_checkbox?: true;
+  /** Pass True if the item has a checked checkbox */
+  is_checked?: true;
+  /** For ordered lists, the numeric value of the item label */
+  value?: number;
+  /** For ordered lists, the type of the item label; must be one of “a” for lowercase letters, “A” for uppercase letters, “i” for lowercase Roman numerals, “I” for uppercase Roman numerals, or “1” for decimal numbers */
+  type?: "a" | "A" | "i" | "I" | "1";
+}
+
+/** This object represents a block in a rich formatted message to be sent. Currently, it can be any of the following types:
+
+- InputRichBlockParagraph
+- InputRichBlockSectionHeading
+- InputRichBlockPreformatted
+- InputRichBlockFooter
+- InputRichBlockDivider
+- InputRichBlockMathematicalExpression
+- InputRichBlockAnchor
+- InputRichBlockList
+- InputRichBlockBlockQuotation
+- InputRichBlockPullQuotation
+- InputRichBlockCollage
+- InputRichBlockSlideshow
+- InputRichBlockTable
+- InputRichBlockDetails
+- InputRichBlockMap
+- InputRichBlockAnimation
+- InputRichBlockAudio
+- InputRichBlockPhoto
+- InputRichBlockVideo
+- InputRichBlockVoiceNote
+- InputRichBlockThinking */
+export type InputRichBlock =
+  | InputRichBlockParagraph
+  | InputRichBlockSectionHeading
+  | InputRichBlockPreformatted
+  | InputRichBlockFooter
+  | InputRichBlockDivider
+  | InputRichBlockMathematicalExpression
+  | InputRichBlockAnchor
+  | InputRichBlockList
+  | InputRichBlockBlockQuotation
+  | InputRichBlockPullQuotation
+  | InputRichBlockCollage
+  | InputRichBlockSlideshow
+  | InputRichBlockTable
+  | InputRichBlockDetails
+  | InputRichBlockMap
+  | InputRichBlockAnimation
+  | InputRichBlockAudio
+  | InputRichBlockPhoto
+  | InputRichBlockVideo
+  | InputRichBlockVoiceNote
+  | InputRichBlockThinking;
+
+/** A text paragraph, corresponding to the HTML tag \<p>. */
+export interface InputRichBlockParagraph {
+  /** Type of the block, always “paragraph” */
+  type: "paragraph";
+  /** Text of the block */
+  text: RichText;
+}
+
+/** A section heading, corresponding to the HTML tags \<h1>, \<h2>, \<h3>, \<h4>, \<h5>, or \<h6>. */
+export interface InputRichBlockSectionHeading {
+  /** Type of the block, always “heading” */
+  type: "heading";
+  /** Text of the block */
+  text: RichText;
+  /** Relative size of the text font; 1-6, 1 is the largest, 6 is the smallest */
+  size: 1 | 2 | 3 | 4 | 5 | 6;
+}
+
+/** A preformatted text block, corresponding to the nested HTML tags \<pre> and \<code>. */
+export interface InputRichBlockPreformatted {
+  /** Type of the block, always “pre” */
+  type: "pre";
+  /** Text of the block */
+  text: RichText;
+  /** The programming language of the text */
+  language?: string;
+}
+
+/** A footer, corresponding to the HTML tag \<footer>. */
+export interface InputRichBlockFooter {
+  /** Type of the block, always “footer” */
+  type: "footer";
+  /** Text of the block */
+  text: RichText;
+}
+
+/** A divider, corresponding to the HTML tag \<hr/>. */
+export interface InputRichBlockDivider {
+  /** Type of the block, always “divider” */
+  type: "divider";
+}
+
+/** A block with a mathematical expression in LaTeX format, corresponding to the custom HTML tag \<tg-math-block>. */
+export interface InputRichBlockMathematicalExpression {
+  /** Type of the block, always “mathematical_expression” */
+  type: "mathematical_expression";
+  /** The mathematical expression in LaTeX format */
+  expression: string;
+}
+
+/** A block with an anchor, corresponding to the HTML tag \<a> with the attribute name. */
+export interface InputRichBlockAnchor {
+  /** Type of the block, always “anchor” */
+  type: "anchor";
+  /** The name of the anchor */
+  name: string;
+}
+
+/** A list of blocks, corresponding to the HTML tag \<ul> or \<ol> with multiple nested tags \<li>. */
+export interface InputRichBlockList {
+  /** Type of the block, always “list” */
+  type: "list";
+  /** Items of the list */
+  items: InputRichBlockListItem[];
+}
+
+/** A block quotation, corresponding to the HTML tag \<blockquote>. */
+export interface InputRichBlockBlockQuotation {
+  /** Type of the block, always “blockquote” */
+  type: "blockquote";
+  /** Content of the block */
+  blocks: InputRichBlock[];
+  /** Credit of the block */
+  credit?: RichText;
+}
+
+/** A quotation with centered text, loosely corresponding to the HTML tag \<aside>. */
+export interface InputRichBlockPullQuotation {
+  /** Type of the block, always “pullquote” */
+  type: "pullquote";
+  /** Text of the block */
+  text: RichText;
+  /** Credit of the block */
+  credit?: RichText;
+}
+
+/** A collage, corresponding to the custom HTML tag \<tg-collage>. */
+export interface InputRichBlockCollage {
+  /** Type of the block, always “collage” */
+  type: "collage";
+  /** Elements of the collage */
+  blocks: InputRichBlock[];
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A slideshow, corresponding to the custom HTML tag \<tg-slideshow>. */
+export interface InputRichBlockSlideshow {
+  /** Type of the block, always “slideshow” */
+  type: "slideshow";
+  /** Elements of the slideshow */
+  blocks: InputRichBlock[];
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A table, corresponding to the HTML tag \<table>. */
+export interface InputRichBlockTable {
+  /** Type of the block, always “table” */
+  type: "table";
+  /** Cells of the table */
+  cells: RichBlockTableCell[][];
+  /** Pass True if the table has borders */
+  is_bordered?: true;
+  /** Pass True if the table is striped */
+  is_striped?: true;
+  /** Caption of the table */
+  caption?: RichText;
+}
+
+/** An expandable block for details disclosure, corresponding to the HTML tag \<details>. */
+export interface InputRichBlockDetails {
+  /** Type of the block, always “details” */
+  type: "details";
+  /** Always shown summary of the block */
+  summary: RichText;
+  /** Content of the block */
+  blocks: InputRichBlock[];
+  /** Pass True if the content of the block is visible by default */
+  is_open?: true;
+}
+
+/** A block with a map, corresponding to the custom HTML tag \<tg-map>. The map's width and height must not exceed 10000 in total. The width and height ratio must be at most 20. */
+export interface InputRichBlockMap {
+  /** Type of the block, always “map” */
+  type: "map";
+  /** Location of the center of the map */
+  location: Location;
+  /** Map zoom level; 0-24 */
+  zoom: number;
+  /** Map width; 0-10000 */
+  width: number;
+  /** Map height; 0-10000 */
+  height: number;
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A block with an animation, corresponding to the HTML tag \<video>. */
+export interface InputRichBlockAnimation {
+  /** Type of the block, always “animation” */
+  type: "animation";
+  /** The animation. Caption is ignored. */
+  animation: InputMediaAnimation;
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A block with a music file, corresponding to the HTML tag \<audio>. */
+export interface InputRichBlockAudio {
+  /** Type of the block, always “audio” */
+  type: "audio";
+  /** The audio. Caption is ignored. */
+  audio: InputMediaAudio;
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A block with a photo, corresponding to the HTML tag \<img>. */
+export interface InputRichBlockPhoto {
+  /** Type of the block, always “photo” */
+  type: "photo";
+  /** The photo. Caption is ignored. */
+  photo: InputMediaPhoto;
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A block with a video, corresponding to the HTML tag \<video>. */
+export interface InputRichBlockVideo {
+  /** Type of the block, always “video” */
+  type: "video";
+  /** The video. Caption is ignored. */
+  video: InputMediaVideo;
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A block with a voice note, corresponding to the HTML tag \<audio>. */
+export interface InputRichBlockVoiceNote {
+  /** Type of the block, always “voice_note” */
+  type: "voice_note";
+  /** The voice note. Caption is ignored. */
+  voice_note: InputMediaVoiceNote;
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A block with a “Thinking…” placeholder, corresponding to the custom HTML tag \<tg-thinking>. The block may be used only in sendRichMessageDraft, therefore it can't be received in messages. See https://t.me/addemoji/AIActions for examples of custom emoji that are recommended for usage in the block. */
+export interface InputRichBlockThinking {
+  /** Type of the block, always “thinking” */
+  type: "thinking";
+  /** Text of the block. See https://t.me/addemoji/AIActions for examples of custom emoji that are recommended for usage in the block. */
   text: RichText;
 }

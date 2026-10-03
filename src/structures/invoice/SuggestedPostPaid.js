@@ -17,14 +17,14 @@ class SuggestedPostPaid {
     }
 
     /**
-     * Currency in which the payment was made. Currently, one of “XTR” for Telegram Stars or “TON” for toncoins
-     * @type {string}
+     * Currency in which the payment was made. Currently, one of “XTR” for Telegram Stars or “TON” for TON grams.
+     * @type {"XTR" | "TON"}
      */
     this.currency = data.currency;
 
     if ("amout" in data) {
       /**
-       * The amount of the currency that was received by the channel in nanotoncoins; for payments in toncoins only.
+       * The amount of the currency that was received by the channel in nanograms; for payments in TON grams only
        * @type {number | undefined}
        */
       this.amount = data.amount;

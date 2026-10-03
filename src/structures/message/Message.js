@@ -68,7 +68,7 @@ class Message extends Base {
   constructor(client, data) {
     super(client);
 
-    /** Unique message identifier inside this chat. In specific instances (e.g., message containing a video sent to a big chat), the server might automatically schedule a message instead of sending it immediately. In such cases, this field will be 0 and the relevant message will be unusable until it is actually sent */
+    /** Unique message identifier inside this chat; 0 for ephemeral messages. In specific instances (e.g., a message containing a video sent to a big chat), the server might automatically schedule a message instead of sending it immediately. In such cases, this field will be 0 and the relevant message will be unusable until it is actually sent. */
     this.id = String(data.message_id);
 
     this._patch(data);
@@ -168,6 +168,16 @@ class Message extends Base {
       }
     }
 
+    if ("receiver_user" in data) {
+      /** For ephemeral messages, the user who received the message */
+      this.receiverUser = this.client.users._add(data.receiver_user);
+    }
+
+    if ("ephemeral_message_id" in data) {
+      /** For ephemeral messages, identifier of the ephemeral message inside this chat. The identifier may be reused for another ephemeral message after the message is deleted or expires. */
+      this.ephemeralMessageId = data.ephemeral_message_id;
+    }
+
     if ("text" in data) {
       /**
        * For text messages, the actual UTF-8 text of the message
@@ -258,7 +268,7 @@ class Message extends Base {
 
     if ("reply_to_message" in data) {
       /**
-       * For replies in the same chat and message thread, the original message. Note that the Message object in this field will not contain further reply_to_message fields even if it itself is a reply
+       * For replies in the same chat and message thread, the original message. Note that the Message object in this field will not contain further reply_to_message fields even if it itself is a reply. If the message is a reply to an ephemeral message, then this field may be omitted.
        * @type {Message | undefined}
        */
       this.originalMessage = new Message(this.client, data.reply_to_message);
@@ -1000,6 +1010,23 @@ class Message extends Base {
       );
     }
 
+    if ("community_chat_added" in data) {
+      /**
+       * Service message: chat added to a Community
+       */
+      this.communityChatAdded = {
+        id: data.community_chat_added.community.id,
+        title: data.community_chat_added.community.name,
+      };
+    }
+
+    if ("community_chat_removed" in data) {
+      /**
+       * Service message: chat removed from a Community
+       */
+      this.communityChatRemoved = {};
+    }
+
     if ("suggested_post_info" in data) {
       /**
        * Information about suggested post parameters if the message is a suggested post in a channel direct messages chat. If the message is an approved or declined suggested post, then it can't be edited.
@@ -1673,6 +1700,140 @@ class Message extends Base {
     }
 
     return this.client.deleteMessage(this.chat.id, this.id);
+  }
+
+  /**
+   * Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline.
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  deleteEphemeral() {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.deleteEphemeralMessage({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+    });
+  }
+
+  /**
+   * Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {string} content - New text of the message, 1-4096 characters after entity parsing
+   * @param {Omit<MethodParameters["editEphemeralMessageText"], "text" | "chatId" | "receiverUserId" | "ephemeralMessageId">} [options={}] - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralText(content, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.editEphemeralMessageText({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+      text: content,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {MethodParameters["editEphemeralMessageMedia"]["media"]} media - An object for the new media content of the message. A new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * @param {Omit<MethodParameters["editEphemeralMessageMedia"], "media" | "chatId" | "receiverUserId" | "ephemeralMessageId">} [options={}] - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralMedia(media, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.editEphemeralMessageMedia({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+      media,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {string} [caption] - New caption of the message, 0-1024 characters after entities parsing.
+   * @param {Omit<MethodParameters["editEphemeralMessageCaption"], "caption" | "chatId" | "receiverUserId" | "ephemeralMessageId">} [options={}] - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralCaption(caption, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.editEphemeralMessageCaption({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+      ...(caption && { caption }),
+      ...options,
+    });
+  }
+
+  /**
+   *  Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {import("../../client/interfaces/Markup").InlineKeyboardMarkup} replyMarkup - An object for an inline keyboard
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralReplyMarkup(replyMarkup) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.editEphemeralMessageReplyMarkup({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+      replyMarkup,
+    });
   }
 
   /**

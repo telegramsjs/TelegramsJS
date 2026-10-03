@@ -166,6 +166,9 @@ interface EventHandlers {
   managedBotUpdated: (
     managedBotUpdated: import("../structures/ManagedBotUpdated").ManagedBotUpdated,
   ) => PossiblyAsync<void>;
+  subscription: (
+    subscription: import("../structures/BotSubscriptionUpdated").BotSubscriptionUpdated,
+  ) => PossiblyAsync<void>;
 }
 
 type EventHandlerParameters =
@@ -187,7 +190,8 @@ type EventHandlerParameters =
   | import("../structures/ChatBoostUpdated").ChatBoostUpdated
   | import("../structures/ChatBoostRemoved").ChatBoostRemoved
   | import("../structures/PaidMediaPurchased").PaidMediaPurchased
-  | import("../structures/ManagedBotUpdated").ManagedBotUpdated;
+  | import("../structures/ManagedBotUpdated").ManagedBotUpdated
+  | import("../structures/BotSubscriptionUpdated").BotSubscriptionUpdated;
 
 class BaseClient extends EventEmitter {
   public readonly rest: Rest;
@@ -582,7 +586,7 @@ class BaseClient extends EventEmitter {
       .then((res) => new Message(this, res));
   }
 
-  /** Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages. On success, an array of MessageId of the sent messages is returned. */
+  /** Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages.On success, an Array of MessageId of the sent messages is returned.*/
   async forwardMessages(
     params: MethodParameters["forwardMessages"],
   ): Promise<MethodsLibReturnType["forwardMessages"]> {
@@ -606,7 +610,7 @@ class BaseClient extends EventEmitter {
       .then((res) => res.message_id);
   }
 
-  /** Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages,  and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message. Album grouping is kept for copied messages. On success, an array of MessageId of the sent messages is returned. */
+  /** Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages,  and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message. Album grouping is kept for copied messages.On success, an Array of MessageId of the sent messages is returned.*/
   async copyMessages(
     params: MethodParameters["copyMessages"],
   ): Promise<MethodsLibReturnType["copyMessages"]> {
@@ -1281,7 +1285,7 @@ class BaseClient extends EventEmitter {
       .then((res) => new ChatMember(this, chatId, res));
   }
 
-  /**  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user. On success, an array of Message objects is returned. */
+  /**  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user. On success, an Array of Message objects is returned. */
   async getUserPersonalChatMessages(
     userId: number | string,
     limit: number,
@@ -2442,6 +2446,44 @@ class BaseClient extends EventEmitter {
       .then((res) => res.map((game) => new GameHighScore(this, game)));
   }
 
+  /** Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  async editEphemeralMessageText(
+    params: MethodParameters["editEphemeralMessageText"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageText"]> {
+    return this.rest.request<MethodsApiReturnType["editEphemeralMessageText"]>(
+      "editEphemeralMessageText",
+      toSnakeCase(params),
+    );
+  }
+
+  /** Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  async editEphemeralMessageMedia(
+    params: MethodParameters["editEphemeralMessageMedia"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageMedia"]> {
+    return this.rest.request<MethodsApiReturnType["editEphemeralMessageMedia"]>(
+      "editEphemeralMessageMedia",
+      toSnakeCase(params),
+    );
+  }
+
+  /** Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  async editEphemeralMessageCaption(
+    params: MethodParameters["editEphemeralMessageCaption"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageCaption"]> {
+    return this.rest.request<
+      MethodsApiReturnType["editEphemeralMessageCaption"]
+    >("editEphemeralMessageCaption", toSnakeCase(params));
+  }
+
+  /** Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  async editEphemeralMessageReplyMarkup(
+    params: MethodParameters["editEphemeralMessageReplyMarkup"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageReplyMarkup"]> {
+    return this.rest.request<
+      MethodsApiReturnType["editEphemeralMessageReplyMarkup"]
+    >("editEphemeralMessageReplyMarkup", toSnakeCase(params));
+  }
+
   /** Use this method to delete a message, including service messages, with the following limitations:
   - A message can only be deleted if it was sent less than 48 hours ago.
   - Service messages about a supergroup, channel, or forum topic creation can't be deleted.
@@ -2460,6 +2502,16 @@ class BaseClient extends EventEmitter {
     return this.rest.request<MethodsApiReturnType["deleteMessage"]>(
       "deleteMessage",
       { chat_id: chatId, message_id: messageId },
+    );
+  }
+
+  /** Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline. Returns True on success. */
+  deleteEphemeralMessage(
+    args: MethodParameters["deleteEphemeralMessage"],
+  ): Promise<MethodsLibReturnType["deleteEphemeralMessage"]> {
+    return this.rest.request<MethodsApiReturnType["deleteEphemeralMessage"]>(
+      "deleteEphemeralMessage",
+      toSnakeCase(args),
     );
   }
 

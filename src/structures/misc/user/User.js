@@ -221,7 +221,7 @@ class User extends Base {
   /**
    *  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user.
    * @param {number} [limit=10] - The maximum number of messages to return; 1-20
-   * @returns {Promise<import("../../message/Message").Message[]>} - On success, an array of Message objects is returned.
+   * @returns {Promise<import("../../message/Message").Message[]>} - On success, an Array of Message objects is returned.
    */
   fetchPersonalChatMessages(limit = 10) {
     return this.client.getUserPersonalChatMessages(this.id, limit);

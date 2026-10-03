@@ -16,6 +16,7 @@ enum ErrorCodes {
   InvalidChatId = "INVALID_CHAT_ID",
   InvalidClientId = "INVALID_CLIENT_ID",
   InvalidFileName = "INVALID_FILE_NAME",
+  InvalidEphemeralMessageId = "INVALID_EPHEMERAL_MESSAGE_ID",
   LoginTimeout = "LOGIN_TIMEOUT",
 }
 
@@ -53,6 +54,8 @@ const ErrorMessages = {
     "The bot ID is not available. Please check if the bot has been initialized",
   [ErrorCodes.InvalidFileName]:
     "The name file is not valid. Please open issue https://github.com/telegramsjs/Telegramsjs/issues",
+  [ErrorCodes.InvalidEphemeralMessageId]:
+    "The provided ID is invalid for retrieving ephemeral message information; it does not correspond to a valid ephemeral message ID.",
   [ErrorCodes.LoginTimeout]:
     "Failed to connect to Telegram BotAPI: connection timeout exceeded",
 } as const;

@@ -139,6 +139,10 @@ class ChatMember extends Base {
       permissions.editTag = data.can_edit_tag;
     }
 
+    if ("can_manage_welcome_messages" in data) {
+      permissions.welcomeMessages = data.can_manage_welcome_messages;
+    }
+
     /** Represents the rights of an administrator in a chat */
     this.permissions = new UserPermissions(
       this.status === "creator" ? UserPermissions.Flags : permissions,

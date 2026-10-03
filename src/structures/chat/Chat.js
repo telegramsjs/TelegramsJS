@@ -465,6 +465,74 @@ class Chat extends Base {
   }
 
   /**
+   * Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline.
+   * @param {number | string} receiverUserId - Identifier of the user who received the message.
+   * @param {number | string} ephemeralMessageId - Identifier of the ephemeral message to delete.
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  deleteEphemeral(receiverUserId, ephemeralMessageId) {
+    return this.client.deleteEphemeralMessage({
+      chatId: this.id,
+      receiverUserId,
+      ephemeralMessageId,
+    });
+  }
+
+  /**
+   * Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {string} content - New text of the message, 1-4096 characters after entity parsing
+   * @param {Omit<MethodParameters["editEphemeralMessageText"], "text" | "chatId">} options - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralText(content, options) {
+    return this.client.editEphemeralMessageText({
+      chatId: this.id,
+      text: content,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {MethodParameters["editEphemeralMessageMedia"]["media"]} media - An object for the new media content of the message. A new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * @param {Omit<MethodParameters["editEphemeralMessageMedia"], "media" | "chatId">} options - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralMedia(media, options) {
+    return this.client.editEphemeralMessageMedia({
+      chatId: this.id,
+      media,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {Omit<MethodParameters["editEphemeralMessageCaption"], "chatId">} options - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralCaption(options) {
+    return this.client.editEphemeralMessageCaption({
+      chatId: this.id,
+      ...options,
+    });
+  }
+
+  /**
+   *  Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {import("../../client/interfaces/Markup").InlineKeyboardMarkup} replyMarkup - An object for an inline keyboard.
+   * @param {Omit<MethodParameters["editEphemeralMessageReplyMarkup"], "chatId" | "replyMarkup">} options - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralReplyMarkup(replyMarkup, options) {
+    return this.client.editEphemeralMessageReplyMarkup({
+      chatId: this.id,
+      replyMarkup,
+      ...options,
+    });
+  }
+
+  /**
    * @typedef {Object} ReactMessageDeleteOptions
    * @property {number | string} [userId] - Identifier of the user whose reaction will be removed, if the reaction was added by a user.
    * @property {number | string} [actorChatId] - Identifier of the chat whose reaction will be removed, if the reaction was added by a chat.
@@ -814,7 +882,7 @@ class Chat extends Base {
 
   /**
    * Use this method to send paid media to channel chats.
-   * @param {MethodParameters["sendPaidMedia"]["media"]} media - An array describing the media to be sent; up to 10 items
+   * @param {MethodParameters["sendPaidMedia"]["media"]} media - An Array describing the media to be sent; up to 10 items
    * @param {number} starCount - The number of Telegram Stars that must be paid to buy access to the media
    * @param {Omit<MethodParameters["sendPaidMedia"], "media" | "starCount" | "chatId">} [options={}] - out parameters
    * @returns {Promise<import("../message/Message").Message & { paidMedia: import("../media/paid/PaidMediaInfo").PaidMediaInfo }>} - On success, the sent Message is returned.

@@ -538,6 +538,14 @@ class ChatFullInfo extends Chat {
       this.guardBot = this.client.users._add(data.guard_bot);
     }
 
+    if ("community" in data) {
+      /** Represents a community (a group of chats). */
+      this.community = {
+        id: data.community.id,
+        name: data.community.name,
+      };
+    }
+
     return data;
   }
 }

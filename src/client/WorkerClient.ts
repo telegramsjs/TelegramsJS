@@ -18,6 +18,8 @@ import { BusinessConnection } from "../structures/business/BusinessConnection";
 import { BusinessMessagesDeleted } from "../structures/business/BusinessMessagesDeleted";
 import { PaidMediaPurchased } from "../structures/PaidMediaPurchased";
 import { ManagedBotUpdated } from "../structures/ManagedBotUpdated";
+import { BotSubscriptionUpdated } from "../structures/BotSubscriptionUpdated";
+
 import type { TelegramClient } from "./TelegramClient";
 
 type UpdateResult =
@@ -38,7 +40,8 @@ type UpdateResult =
   | ChatBoostUpdated
   | ChatBoostRemoved
   | PaidMediaPurchased
-  | ManagedBotUpdated;
+  | ManagedBotUpdated
+  | BotSubscriptionUpdated;
 
 /**
  * Handles incoming updates from the Telegram API and routes them to the appropriate event handlers.
@@ -158,6 +161,10 @@ class WorkerClient {
 
     if ("managed_bot" in data && data.managed_bot) {
       return this.onManagedUpdatedBot(data.managed_bot);
+    }
+
+    if ("subscription" in data && data.subscription) {
+      return this.onBotSubscriptionUpdated(data.subscription);
     }
   }
 
@@ -433,6 +440,18 @@ class WorkerClient {
     const managedBot = new ManagedBotUpdated(this.client, data);
     this.client.emit(Events.ManagedBotUpdated, managedBot);
     return managedBot;
+  }
+
+  /**
+   * Handles bot subscription updates.
+   * @param data - The subscription update data.
+   */
+  onBotSubscriptionUpdated(
+    data: NonNullable<Update["subscription"]>,
+  ): BotSubscriptionUpdated {
+    const subscription = new BotSubscriptionUpdated(this.client, data);
+    this.client.emit(Events.Subscription, subscription);
+    return subscription;
   }
 }
 

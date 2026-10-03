@@ -13,7 +13,7 @@ class ChatJoinRequest extends Base {
     super(client);
 
     if (data.query_id) {
-      /** Identifier of the join request query. If present, then the bot must call sendChatJoinRequestWebApp or directly call answerChatJoinRequestQuery within 10 seconds. */
+      /** Identifier of the join request query; for bots assigned to process join requests only. If present, then the bot must call sendChatJoinRequestWebApp or directly call answerChatJoinRequestQuery within 10 seconds. */
       this.id = data.query_id;
     }
 

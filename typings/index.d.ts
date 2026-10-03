@@ -114,7 +114,8 @@ export type ChatPermissionString =
   | "manageTopics"
   | "manageTags"
   | "reactToMessages"
-  | "manageDirectMessages";
+  | "manageDirectMessages"
+  | "welcomeMessages";
 
 /**
  * Interface representing the chat permission flags.
@@ -139,6 +140,7 @@ export interface ChatPermissionFlags {
   manageTags?: boolean;
   reactToMessages?: boolean;
   manageDirectMessages?: boolean;
+  welcomeMessages?: boolean;
 }
 
 /**
@@ -810,7 +812,7 @@ export declare class User extends Base {
   /**
    *  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user.
    * @param limit - The maximum number of messages to return; 1-20
-   * @returns On success, an array of Message objects is returned.
+   * @returns On success, an Array of Message objects is returned.
    */
   fetchPersonalChatMessages(limit?: number): Promise<Message[]>;
   /**
@@ -1036,7 +1038,8 @@ export type UserPermissionString =
   | "manageTopics"
   | "manageTags"
   | "reactToMessages"
-  | "manageDirectMessages";
+  | "manageDirectMessages"
+  | "welcomeMessages";
 
 /**
  * Interface representing the user permission flags.
@@ -1059,6 +1062,7 @@ export interface UserPermissionFlags {
   manageTags?: boolean;
   reactToMessages?: boolean;
   manageDirectMessages?: boolean;
+  welcomeMessages?: boolean;
 }
 
 /**
@@ -3999,9 +4003,9 @@ export class UniqueGiftInfo extends Base {
   ownedGiftId?: string;
   /** Number of Telegram Stars that must be paid to transfer the gift; omitted if the bot cannot transfer the gift */
   transferStarCount?: number;
-  /** For gifts bought from other users, the currency in which the payment for the gift was done. Currently, one of “XTR” for Telegram Stars or “TON” for toncoins. */
+  /** For gifts bought from other users, the currency in which the payment for the gift was done. Currently, one of “XTR” for Telegram Stars or “TON” for TON grams. */
   lastResaleCurrency?: "XTR" | "TON";
-  /** For gifts bought from other users, the price paid for the gift in either Telegram Stars or nanotoncoins */
+  /** For gifts bought from other users, the price paid for the gift in either Telegram Stars or nanograms */
   lastResaleAmount?: number;
   /**  Point in time (Unix timestamp) when the gift can be transferred. If it is in the past, then the gift can be transferred now */
   nextTransferUnixTime?: number;
@@ -5038,7 +5042,7 @@ export declare class SharedUser extends Base {
   /**
    *  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user.
    * @param limit - The maximum number of messages to return; 1-20
-   * @returns On success, an array of Message objects is returned.
+   * @returns On success, an Array of Message objects is returned.
    */
   fetchPersonalChatMessages(limit?: number): Promise<Message[]>;
   /**
@@ -5679,7 +5683,7 @@ export declare class ChatShared extends Base {
   >;
   /**
    * Use this method to send paid media to channel chats.
-   * @param media - An array describing the media to be sent; up to 10 items
+   * @param media - An Array describing the media to be sent; up to 10 items
    * @param starCount - The number of Telegram Stars that must be paid to buy access to the media
    * @param options - out parameters
    * @returns On success, the sent Message is returned.
@@ -6884,6 +6888,14 @@ export declare class Message extends Base {
    */
   member?: ChatMember;
   /**
+   * For ephemeral messages, the user who received the message
+   */
+  receiverUser?: User;
+  /**
+   * For ephemeral messages, identifier of the ephemeral message inside this chat. The identifier may be reused for another ephemeral message after the message is deleted or expires.
+   */
+  ephemeralMessageId?: number;
+  /**
    * For text messages, the actual UTF-8 text of the message
    */
   content?: string;
@@ -6924,7 +6936,7 @@ export declare class Message extends Base {
    */
   automaticForward?: boolean;
   /**
-   * For replies in the same chat and message thread, the original message. Note that the Message object in this field will not contain further reply_to_message fields even if it itself is a reply
+   * For replies in the same chat and message thread, the original message. Note that the Message object in this field will not contain further reply_to_message fields even if it itself is a reply. If the message is a reply to an ephemeral message, then this field may be omitted.
    */
   originalMessage?: Message;
   /**
@@ -7306,6 +7318,19 @@ export declare class Message extends Base {
   checklistTasksDone?: ChecklistTasksDone;
   /** Service message: tasks were added to a checklist */
   checklistTasksAdded?: ChecklistTasksAdded;
+  /**
+   * Service message: chat added to a Community
+   */
+  communityChatAdded: {
+    /** Unique identifier for this community */
+    id: number;
+    /** Name of the community */
+    title: string;
+  };
+  /**
+   * Service message: chat removed from a Community
+   */
+  communityChatRemoved?: {};
   /**
    * Information about suggested post parameters if the message is a suggested post in a channel direct messages chat. If the message is an approved or declined suggested post, then it can't be edited.
    */
@@ -7810,6 +7835,56 @@ export declare class Message extends Base {
 	 * @returns Returns True on success.
  */
   delete(): Promise<true>;
+  /**
+   * Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline.
+   * @returns Returns True on success.
+   */
+  deleteEphemeral(): Promise<true>;
+  /**
+   * Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param content - New text of the message, 1-4096 characters after entity parsing
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  editEphemeralText(
+    content: string,
+    options?: Omit<
+      MethodParameters["editEphemeralMessageText"],
+      "text" | "chatId" | "receiverUserId" | "ephemeralMessageId"
+    >,
+  ): Promise<true>;
+  /**
+   * Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param media - An object for the new media content of the message. A new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  editEphemeralMedia(
+    media: MethodParameters["editEphemeralMessageMedia"]["media"],
+    options?: Omit<
+      MethodParameters["editEphemeralMessageMedia"],
+      "media" | "chatId" | "receiverUserId" | "ephemeralMessageId"
+    >,
+  ): Promise<true>;
+  /**
+   * Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param caption - New caption of the message, 0-1024 characters after entities parsing.
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  editEphemeralCaption(
+    caption?: string,
+    options?: Omit<
+      MethodParameters["editEphemeralMessageCaption"],
+      "caption" | "chatId" | "receiverUserId" | "ephemeralMessageId"
+    >,
+  ): Promise<true>;
+  /**
+   *  Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param replyMarkup - An object for an inline keyboard
+   * @returns Returns True on success.
+   */
+  editEphemeralReplyMarkup(replyMarkup: InlineKeyboardMarkup): Promise<true>;
   /**
    * Use this method to remove a reaction from a message in a group or a supergroup chat. The bot must have the 'can_delete_messages' administrator right in the chat.
    * @param options - Options for deleting reaction
@@ -9087,6 +9162,64 @@ export declare class Chat extends Base {
    */
   deleteMessages(ids: (number | string)[]): Promise<true>;
   /**
+   * Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline.
+   * @param receiverUserId - Identifier of the user who received the message.
+   * @param ephemeralMessageId - Identifier of the ephemeral message to delete.
+   * @returns Returns True on success.
+   */
+  deleteEphemeral(
+    receiverUserId: number | string,
+    ephemeralMessageId: number | string,
+  ): Promise<true>;
+  /**
+   * Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param content - New text of the message, 1-4096 characters after entity parsing
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  editEphemeralText(
+    content: string,
+    options: Omit<
+      MethodParameters["editEphemeralMessageText"],
+      "text" | "chatId"
+    >,
+  ): Promise<true>;
+  /**
+   * Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param media - An object for the new media content of the message. A new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  editEphemeralMedia(
+    media: MethodParameters["editEphemeralMessageMedia"]["media"],
+    options: Omit<
+      MethodParameters["editEphemeralMessageMedia"],
+      "media" | "chatId"
+    >,
+  ): Promise<true>;
+  /**
+   * Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  editEphemeralCaption(
+    options: Omit<MethodParameters["editEphemeralMessageCaption"], "chatId">,
+  ): Promise<true>;
+  /**
+   *  Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param replyMarkup - An object for an inline keyboard.
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  editEphemeralReplyMarkup(
+    replyMarkup: InlineKeyboardMarkup,
+    options: Omit<
+      MethodParameters["editEphemeralMessageReplyMarkup"],
+      "chatId" | "replyMarkup"
+    >,
+  ): Promise<true>;
+
+  /**
    * Use this method to remove a reaction from a message in a group or a supergroup chat. The bot must have the 'can_delete_messages' administrator right in the chat.
    * @param options - Options for deleting reaction
    * @returns Returns True on success.
@@ -9440,7 +9573,7 @@ export declare class Chat extends Base {
   >;
   /**
    * Use this method to send paid media to channel chats.
-   * @param media - An array describing the media to be sent; up to 10 items
+   * @param media - An Array describing the media to be sent; up to 10 items
    * @param starCount - The number of Telegram Stars that must be paid to buy access to the media
    * @param options - out parameters
    * @returns On success, the sent Message is returned.
@@ -11185,7 +11318,7 @@ export declare class ChatJoinRequest extends Base {
     client: TelegramClient | BaseClient,
     data: import("@telegram.ts/types").ChatJoinRequest,
   );
-  /** Identifier of the join request query. If present, then the bot must call sendChatJoinRequestWebApp or directly call answerChatJoinRequestQuery within 10 seconds. */
+  /** Identifier of the join request query; for bots assigned to process join requests only. If present, then the bot must call sendChatJoinRequestWebApp or directly call answerChatJoinRequestQuery within 10 seconds. */
   id?: string;
   /** Identifier of a private chat with the user who sent the join request. The bot can use this identifier for 5 minutes to send messages until the join request is processed, assuming no other administrator contacted the user. */
   userChatId: string;
@@ -11395,6 +11528,7 @@ export interface EventHandlers {
   managedBotUpdated: (
     managedBotUpdated: ManagedBotUpdated,
   ) => PossiblyAsync<void>;
+  subscription: (subscription: BotSubscriptionUpdated) => PossiblyAsync<void>;
 }
 
 export type EventHandlerParameters =
@@ -11549,7 +11683,7 @@ export declare class BaseClient extends EventEmitter {
   forwardMessage(
     params: MethodParameters["forwardMessage"],
   ): Promise<MethodsLibReturnType["forwardMessage"]>;
-  /** Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages. On success, an array of MessageId of the sent messages is returned. */
+  /** Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages.On success, an Array of MessageId of the sent messages is returned.*/
   forwardMessages(
     params: MethodParameters["forwardMessages"],
   ): Promise<MethodsLibReturnType["forwardMessages"]>;
@@ -11557,7 +11691,7 @@ export declare class BaseClient extends EventEmitter {
   copyMessage(
     params: MethodParameters["copyMessage"],
   ): Promise<MethodsLibReturnType["copyMessage"]>;
-  /** Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages,  and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message. Album grouping is kept for copied messages. On success, an array of MessageId of the sent messages is returned. */
+  /** Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages,  and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message. Album grouping is kept for copied messages.On success, an Array of MessageId of the sent messages is returned.*/
   copyMessages(
     params: MethodParameters["copyMessages"],
   ): Promise<MethodsLibReturnType["copyMessages"]>;
@@ -11805,7 +11939,7 @@ export declare class BaseClient extends EventEmitter {
     chatId: number | string,
     userId: number | string,
   ): Promise<MethodsLibReturnType["getChatMember"]>;
-  /**  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user. On success, an array of Message objects is returned. */
+  /**  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user. On success, an Array of Message objects is returned. */
   getUserPersonalChatMessages(
     userId: number | string,
     limit: number,
@@ -12222,6 +12356,22 @@ export declare class BaseClient extends EventEmitter {
   getGameHighScores(
     params: MethodParameters["getGameHighScores"],
   ): Promise<MethodsLibReturnType["getGameHighScores"]>;
+  /** Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  editEphemeralMessageText(
+    params: MethodParameters["editEphemeralMessageText"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageText"]>;
+  /** Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  editEphemeralMessageMedia(
+    params: MethodParameters["editEphemeralMessageMedia"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageMedia"]>;
+  /** Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  editEphemeralMessageCaption(
+    params: MethodParameters["editEphemeralMessageCaption"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageCaption"]>;
+  /** Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  editEphemeralMessageReplyMarkup(
+    params: MethodParameters["editEphemeralMessageReplyMarkup"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageReplyMarkup"]>;
   /** Use this method to delete a message, including service messages, with the following limitations:
 	- A message can only be deleted if it was sent less than 48 hours ago.
 	- Service messages about a supergroup, channel, or forum topic creation can't be deleted.
@@ -12237,6 +12387,10 @@ export declare class BaseClient extends EventEmitter {
     chatId: number | string,
     messageId: number | string,
   ): Promise<MethodsLibReturnType["deleteMessage"]>;
+  /** Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline. Returns True on success. */
+  deleteEphemeralMessage(
+    args: MethodParameters["deleteEphemeralMessage"],
+  ): Promise<MethodsLibReturnType["deleteEphemeralMessage"]>;
   /** Use this method to delete multiple messages simultaneously. Returns True on success. */
   deleteMessages(
     chatId: number | string,
@@ -12411,131 +12565,151 @@ export declare class WorkerClient {
     | ChatJoinRequest
     | ChatBoostUpdated
     | ChatBoostRemoved
-    | PaidMediaPurchased;
+    | PaidMediaPurchased
+    | BotSubscriptionUpdated;
   /**
    * Handles new messages, channel posts, or business messages.
    * @param data - The message data.
    */
   onMessage(
     data:
-      | Update["message"]
-      | Update["channel_post"]
-      | Update["business_message"]
-      | Update["guest_message"],
+      | NonNullable<Update["message"]>
+      | NonNullable<Update["channel_post"]>
+      | NonNullable<Update["business_message"]>
+      | NonNullable<Update["guest_message"]>,
   ): Message;
   /**
    * Handles new business connections.
    * @param data - The business connection data.
    */
-  onBusinessConnection(data: Update["business_connection"]): BusinessConnection;
+  onBusinessConnection(
+    data: NonNullable<Update["business_connection"]>,
+  ): BusinessConnection;
   /**
    * Handles edited messages, channel posts, or business messages.
    * @param data - The edited message data.
    */
   onMessageEdit(
     data:
-      | Update["edited_message"]
-      | Update["edited_channel_post"]
-      | Update["edited_business_message"],
+      | NonNullable<Update["edited_message"]>
+      | NonNullable<Update["edited_channel_post"]>
+      | NonNullable<Update["edited_business_message"]>,
   ): Message;
   /**
    * Handles deleted business messages.
    * @param data - The deleted business messages data.
    */
   onDeletedBusinessMessages(
-    data: Update["deleted_business_messages"],
+    data: NonNullable<Update["deleted_business_messages"]>,
   ): BusinessMessagesDeleted;
   /**
    * Handles reactions to messages.
    * @param data - The message reaction data.
    */
-  onMessageReaction(data: Update["message_reaction"]): MessageReactionUpdated;
+  onMessageReaction(
+    data: NonNullable<Update["message_reaction"]>,
+  ): MessageReactionUpdated;
   /**
    * Handles updates to message reaction counts.
    * @param data - The message reaction count data.
    */
   onMessageReactionCount(
-    data: Update["message_reaction_count"],
+    data: NonNullable<Update["message_reaction_count"]>,
   ): MessageReactionCountUpdated;
   /**
    * Handles incoming inline queries.
    * @param data - The inline query data.
    */
-  onInlineQuery(data: Update["inline_query"]): InlineQuery;
+  onInlineQuery(data: NonNullable<Update["inline_query"]>): InlineQuery;
   /**
    * Handles chosen inline results.
    * @param data - The chosen inline result data.
    */
   onChosenInlineResult(
-    data: Update["chosen_inline_result"],
+    data: NonNullable<Update["chosen_inline_result"]>,
   ): ChosenInlineResult;
   /**
    * Handles incoming callback queries.
    * @param data - The callback query data.
    */
-  onCallbackQuery(data: Update["callback_query"]): CallbackQuery;
+  onCallbackQuery(data: NonNullable<Update["callback_query"]>): CallbackQuery;
   /**
    * Handles incoming shipping queries.
    * @param data - The shipping query data.
    */
-  onShippingQuery(data: Update["shipping_query"]): ShippingQuery;
+  onShippingQuery(data: NonNullable<Update["shipping_query"]>): ShippingQuery;
   /**
    * Handles pre-checkout queries.
    * @param data - The pre-checkout query data.
    */
-  onPreCheckoutQuery(data: Update["pre_checkout_query"]): PreCheckoutQuery;
+  onPreCheckoutQuery(
+    data: NonNullable<Update["pre_checkout_query"]>,
+  ): PreCheckoutQuery;
   /**
    * Handles new polls.
    * @param data - The poll data.
    */
-  onPoll(data: Update["poll"]): Poll;
+  onPoll(data: NonNullable<Update["poll"]>): Poll;
   /**
    * Handles new poll answers.
    * @param data - The poll answer data.
    */
-  onPollAnswer(data: Update["poll_answer"]): PollAnswer;
+  onPollAnswer(data: NonNullable<Update["poll_answer"]>): PollAnswer;
   /**
    * Handles updates to the client's chat member status.
    * @param data - The chat member update data.
    */
-  onMyChatMember(data: Update["my_chat_member"]): ChatMemberUpdated;
+  onMyChatMember(
+    data: NonNullable<Update["my_chat_member"]>,
+  ): ChatMemberUpdated;
   /**
    * Handles updates to chat members.
    * @param data - The chat member update data.
    */
-  onChatMember(data: Update["chat_member"]): ChatMemberUpdated;
+  onChatMember(data: NonNullable<Update["chat_member"]>): ChatMemberUpdated;
   /**
    * Handles new chat members being added.
    * @param data - The message data containing new chat members.
    */
-  onChatMemberAdd(data: Update["message"]): Message;
+  onChatMemberAdd(data: NonNullable<Update["message"]>): Message;
   /**
    * Handles chat members being removed.
    * @param data - The message data containing removed chat members.
    */
-  onChatMemberRemove(data: Update["message"]): Message;
+  onChatMemberRemove(data: NonNullable<Update["message"]>): Message;
   /**
    * Handles chat join requests.
    * @param data - The chat join request data.
    */
-  onChatJoinRequest(data: Update["chat_join_request"]): ChatJoinRequest;
+  onChatJoinRequest(
+    data: NonNullable<Update["chat_join_request"]>,
+  ): ChatJoinRequest;
   /**
    * Handles updates to chat boosts.
    * @param data - The chat boost update data.
    */
-  onChatBoost(data: Update["chat_boost"]): ChatBoostUpdated;
+  onChatBoost(data: NonNullable<Update["chat_boost"]>): ChatBoostUpdated;
   /**
    * Handles removed chat boosts.
    * @param data - The removed chat boost data.
    */
-  onRemovedChatBoost(data: Update["removed_chat_boost"]): ChatBoostRemoved;
+  onRemovedChatBoost(
+    data: NonNullable<Update["removed_chat_boost"]>,
+  ): ChatBoostRemoved;
   /**
    * Handles purchased paid media.
    * @param data - The purchased paid media.
    */
   onPurchasedPaidMedia(
-    data: Update["purchased_paid_media"],
+    data: NonNullable<Update["purchased_paid_media"]>,
   ): PaidMediaPurchased;
+  /**
+   * Handles bot subscription updates.
+   * @param data - The subscription update data.
+   */
+  onBotSubscriptionUpdated(
+    data: NonNullable<Update["subscription"]>,
+  ): BotSubscriptionUpdated;
 }
 
 export declare class MenuButton {
@@ -12928,6 +13102,23 @@ export declare class Base {
   valueOf(): string | null;
 }
 
+export class BotSubscriptionUpdated extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the represents changes to a user payment subscription toward the current bot.
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").BotSubscriptionUpdated,
+  );
+  /** User who subscribed for payments toward the bot */
+  user: User;
+  /** Bot-specified invoice payload */
+  invoicePayload: string;
+  /** The new state of the subscription. Currently, it can be one of “canceled” if the user canceled the subscription, “active” if the user re-enabled a previously canceled subscription, or “failed” if payment for the subscription failed. */
+  state: "failed" | "canceled" | "active";
+}
+
 export declare class WebhookInfo extends Base {
   /**
    * @param client - The client that instantiated this
@@ -13215,6 +13406,15 @@ export declare class ChatFullInfo extends Chat {
   location?: {
     location: Location;
     address: string;
+  };
+  /**
+   * Represents a community (a group of chats).
+   */
+  community?: {
+    /** Unique identifier for this community */
+    id: number;
+    /** Name of the community */
+    title: string;
   };
 }
 
@@ -13601,11 +13801,11 @@ export class SuggestedPostPaid {
    */
   postMessage?: Message;
   /**
-   * Currency in which the payment was made. Currently, one of “XTR” for Telegram Stars or “TON” for toncoins
+   * Currency in which the payment was made. Currently, one of “XTR” for Telegram Stars or “TON” for TON grams.
    */
-  currency: string;
+  currency: "XTR" | "TON";
   /**
-   * The amount of the currency that was received by the channel in nanotoncoins; for payments in toncoins only.
+   * The amount of the currency that was received by the channel in nanograms; for payments in TON grams only
    */
   amount?: number;
   /**
@@ -13620,11 +13820,11 @@ export class SuggestedPostPrice {
    */
   constructor(data: import("@telegram.ts/types").SuggestedPostPrice);
   /**
-   * Currency in which the post will be paid. Currently, must be one of “XTR” for Telegram Stars or “TON” for toncoins
+   * Currency in which the post will be paid. Currently, must be one of “XTR” for Telegram Stars or “TON” for TON grams.
    */
   currency: "XTR" | "TON";
   /**
-   * The amount of the currency that will be paid for the post in the smallest units of the currency, i.e. Telegram Stars or nanotoncoins. Currently, price in Telegram Stars must be between 5 and 100000, and price in nanotoncoins must be between 10000000 and 10000000000000.
+   * The amount of the currency that will be paid for the post in the smallest units of the currency, i.e. Telegram Stars or nanograms. Currently, price in Telegram Stars must be between 5 and 100000, and price in nanograms must be between 10000000 and 10000000000000.
    */
   amount: number;
 }
@@ -14743,6 +14943,7 @@ export declare const Events: {
   readonly ChatBoost: "chatBoost";
   readonly RemovedChatBoost: "removedChatBoost";
   readonly ManagedBotUpdated: "managedBotUpdated";
+  readonly Subscription: "subscription";
 };
 
 export declare const CollectorEvents: {
@@ -14868,6 +15069,7 @@ export declare enum ErrorCodes {
   InvalidChatId = "INVALID_CHAT_ID",
   InvalidClientId = "INVALID_CLIENT_ID",
   InvalidFileName = "INVALID_FILE_NAME",
+  InvalidEphemeralMessageId = "INVALID_EPHEMERAL_MESSAGE_ID",
 }
 
 export declare const ErrorMessages: {
@@ -14886,6 +15088,7 @@ export declare const ErrorMessages: {
   readonly INVALID_USER_ID: "The provided ID is invalid for retrieving user information; it does not correspond to a valid user ID.";
   readonly INVALID_CHAT_ID: "The provided ID is invalid for retrieving chat information; it does not correspond to a valid chat ID.";
   readonly INVALID_CLIENT_ID: "The bot ID is not available. Please check if the bot has been initialized";
+  readonly INVALID_EPHEMERAL_MESSAGE_ID: "The provided ID is invalid for retrieving ephemeral message information; it does not correspond to a valid ephemeral message ID.";
   readonly INVALID_FILE_NAME: "The name file is not valid. Please open issue https://github.com/telegramsjs/Telegramsjs/issues";
 };
 

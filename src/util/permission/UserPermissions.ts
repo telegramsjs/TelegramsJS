@@ -20,7 +20,8 @@ type UserPermissionString =
   | "manageTopics"
   | "manageTags"
   | "reactToMessages"
-  | "manageDirectMessages";
+  | "manageDirectMessages"
+  | "welcomeMessages";
 
 /**
  * Interface representing the user permission flags.
@@ -43,6 +44,7 @@ interface UserPermissionFlags {
   manageTags?: boolean;
   reactToMessages?: boolean;
   manageDirectMessages?: boolean;
+  welcomeMessages?: boolean;
 }
 
 /**
@@ -90,6 +92,7 @@ class UserPermissions extends PermissionManager<
     manageTags: 15,
     reactToMessages: 16,
     manageDirectMessages: 17,
+    welcomeMessages: 18,
   };
 }
 
