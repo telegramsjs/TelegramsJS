@@ -547,10 +547,14 @@ function resolveRichBlock(client, data) {
   /** @type {keyof typeof RichBlockTypes} */
   const type = data.type;
 
+  if (!Object.prototype.hasOwnProperty.call(RichBlockTypes, type)) {
+    throw new TypeError(`Unknown rich block type: "${data.type}"`);
+  }
+
   const RichBlockClass = RichBlockTypes[type];
 
-  if (!RichBlockClass) {
-    throw new TypeError(`Unknown rich block type: "${data.type}"`);
+  if (typeof RichBlockClass !== "function") {
+    throw new TypeError(`Invalid rich block constructor for type: "${data.type}"`);
   }
 
   // Each block class accepts its own narrowed block type, while the lookup
