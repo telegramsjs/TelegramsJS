@@ -3,6 +3,7 @@ import type {
   InputInvoiceMessageContent,
   InputLocationMessageContent,
   InputTextMessageContent,
+  InputRichMessageContent,
   InputVenueMessageContent,
 } from "../../client/interfaces/Inline";
 
@@ -17,6 +18,16 @@ class InputMessageContentBuilder {
     options?: Omit<InputTextMessageContent, "message_text">,
   ): InputTextMessageContent {
     return { message_text: text, ...options };
+  }
+
+  /**
+   * Represents the [content](https://core.telegram.org/bots/api/#inputmessagecontent) of a rich text message to be sent as the result of an inline query.
+   * @param text - Text of the message to be sent, 1-4096 characters.
+   */
+  static richText(
+    text: InputRichMessageContent["rich_message"],
+  ): InputRichMessageContent {
+    return { rich_message: text };
   }
 
   /**

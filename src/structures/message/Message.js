@@ -1,6 +1,6 @@
 // @ts-check
 const { Base } = require("../Base");
-const { UsersShared } = require("../misc/UsersShared");
+const { UsersShared } = require("../misc/user/UsersShared");
 const { ChatShared } = require("../misc/ChatShared");
 const { ChatMember } = require("../chat/ChatMember");
 const { Checklist } = require("../checklist/Checklist");
@@ -15,12 +15,13 @@ const { Contact } = require("../media/Contact");
 const { Dice } = require("../media/Dice");
 const { Document } = require("../media/Document");
 const { Photo } = require("../media/Photo");
-const { Poll } = require("../media/Poll");
+const { Poll } = require("../media/poll/Poll");
 const { Sticker } = require("../media/Sticker");
-const { Video } = require("../media/Video");
-const { VideoNote } = require("../media/VideoNote");
+const { Video } = require("../media/video/Video");
+const { VideoNote } = require("../media/video/VideoNote");
 const { Voice } = require("../media/Voice");
 const { PaidMediaInfo } = require("../media/paid/PaidMediaInfo");
+const { LivePhoto } = require("../media/LivePhoto");
 const { SuccessfulPayment } = require("../invoice/SuccessfulPayment");
 const { Location } = require("../misc/Location");
 const { Venue } = require("../misc/Venue");
@@ -28,6 +29,7 @@ const { LinkPreviewOptions } = require("../misc/LinkPreviewOptions");
 const { RefundedPayment } = require("../invoice/RefundedPayment");
 const { MessageOrigin } = require("../message/MessageOrigin");
 const { MessageEntities } = require("../message/MessageEntities");
+const { RichMessage } = require("../message/RichMessage");
 const { ExternalReplyInfo } = require("../misc/ExternalReplyInfo");
 const { ChatBackground } = require("../chat/ChatBackground");
 const { Giveaway } = require("../giveaway/Giveaway");
@@ -66,7 +68,7 @@ class Message extends Base {
   constructor(client, data) {
     super(client);
 
-    /** Unique message identifier inside this chat. In specific instances (e.g., message containing a video sent to a big chat), the server might automatically schedule a message instead of sending it immediately. In such cases, this field will be 0 and the relevant message will be unusable until it is actually sent */
+    /** Unique message identifier inside this chat; 0 for ephemeral messages. In specific instances (e.g., a message containing a video sent to a big chat), the server might automatically schedule a message instead of sending it immediately. In such cases, this field will be 0 and the relevant message will be unusable until it is actually sent. */
     this.id = String(data.message_id);
 
     this._patch(data);
@@ -102,7 +104,7 @@ class Message extends Base {
     if ("from" in data) {
       /**
        * Sender of the message; may be empty for messages sent to channels. For backward compatibility, if the message was sent on behalf of a chat, the field contains a fake sender user in non-channel chats
-       * @type {import("../misc/User").User | undefined}
+       * @type {import("../misc/user/User").User | undefined}
        */
       this.author = this.client.users._add(data.from);
     }
@@ -127,7 +129,7 @@ class Message extends Base {
       /**
        * @typedef {Object} DirectMessagesTopic
        * @property {number} id - Unique identifier of the topic.
-       * @property {import("../misc/User").User} user - Information about the user that created the topic. Currently, it is always present.
+       * @property {import("../misc/user/User").User} user - Information about the user that created the topic. Currently, it is always present.
        */
 
       /**
@@ -164,6 +166,16 @@ class Message extends Base {
           ...(data.sender_tag && { tag: data.sender_tag }),
         });
       }
+    }
+
+    if ("receiver_user" in data) {
+      /** For ephemeral messages, the user who received the message */
+      this.receiverUser = this.client.users._add(data.receiver_user);
+    }
+
+    if ("ephemeral_message_id" in data) {
+      /** For ephemeral messages, identifier of the ephemeral message inside this chat. The identifier may be reused for another ephemeral message after the message is deleted or expires. */
+      this.ephemeralMessageId = data.ephemeral_message_id;
     }
 
     if ("text" in data) {
@@ -206,6 +218,14 @@ class Message extends Base {
       );
     }
 
+    if ("rich_message" in data) {
+      /**
+       * Message is a rich formatted message
+       * @type {any | undefined}
+       */
+      this.richMessage = new RichMessage(this.client, data.rich_message);
+    }
+
     if ("sender_boost_count" in data) {
       /**
        * If the sender of the message boosted the chat, the number of boosts added by the user
@@ -217,7 +237,7 @@ class Message extends Base {
     if ("sender_business_bot" in data) {
       /**
        * The bot that actually sent the message on behalf of the business account. Available only for outgoing messages sent on behalf of the connected business account.
-       * @type {import("../misc/User").User | undefined}
+       * @type {import("../misc/user/User").User | undefined}
        */
       this.senderBusinessBot = this.client.users._add(data.sender_business_bot);
     }
@@ -248,7 +268,7 @@ class Message extends Base {
 
     if ("reply_to_message" in data) {
       /**
-       * For replies in the same chat and message thread, the original message. Note that the Message object in this field will not contain further reply_to_message fields even if it itself is a reply
+       * For replies in the same chat and message thread, the original message. Note that the Message object in this field will not contain further reply_to_message fields even if it itself is a reply. If the message is a reply to an ephemeral message, then this field may be omitted.
        * @type {Message | undefined}
        */
       this.originalMessage = new Message(this.client, data.reply_to_message);
@@ -308,9 +328,29 @@ class Message extends Base {
     if ("via_bot" in data) {
       /**
        * Bot through which the message was sent
-       * @type {import("../misc/User").User | undefined}
+       * @type {import("../misc/user/User").User | undefined}
        */
       this.viaBot = this.client.users._add(data.via_bot);
+    }
+
+    if ("guest_bot_caller_user" in data) {
+      /**
+       * For a message sent by a guest bot, this is the user whose original message triggered the bot's response.
+       * @type {import("../misc/user/User").User | undefined}
+       */
+      this.guestBotCallerUser = this.client.users._add(
+        data.guest_bot_caller_user,
+      );
+    }
+
+    if ("guest_bot_caller_chat" in data) {
+      /**
+       * For a message sent by a guest bot, this is the chat whose original message triggered the bot's response.
+       * @type {import("../chat/Chat").Chat | undefined}
+       */
+      this.guestBotCallerChat = this.client.chats._add(
+        data.guest_bot_caller_chat,
+      );
     }
 
     if ("has_protected_content" in data) {
@@ -383,6 +423,14 @@ class Message extends Base {
       });
     }
 
+    if ("guest_query_id" in data) {
+      /**
+       * The unique identifier for the guest query. Use this identifier with the method answerGuestQuery to send a response message. If non-empty, the message belongs to the chat where the guest bot was summoned, which may not coincide with other existing bot chats sharing the same identifier.
+       * @type {string | undefined}
+       */
+      this.guestQueryId = data.guest_query_id;
+    }
+
     if ("business_connection_id" in data) {
       /**
        * Unique identifier of the business connection from which the message was received. If non-empty, the message belongs to a chat of the corresponding business account that is independent from any potential bot chat which might share the same identifier
@@ -394,7 +442,7 @@ class Message extends Base {
     if ("new_chat_members" in data) {
       /**
        * New members that were added to the group or supergroup and information about them (the bot itself may be one of these members)
-       * @type {Collection<string, import("../misc/User").User> | undefined}
+       * @type {Collection<string, import("../misc/user/User").User> | undefined}
        */
       this.newChatMembers = new Collection(
         data.new_chat_members.map((user) => [
@@ -407,7 +455,7 @@ class Message extends Base {
     if ("left_chat_member" in data) {
       /**
        * A member was removed from the group, information about them (this member may be the bot itself)
-       * @type {import("../misc/User").User | undefined}
+       * @type {import("../misc/user/User").User | undefined}
        */
       this.leftChatMember = this.client.users._add(data.left_chat_member);
     }
@@ -465,7 +513,7 @@ class Message extends Base {
     if ("managed_bot_created" in data) {
       /**
        * User created a bot that will be managed by the current bot.
-       * @type {import("../misc/User").User|undefined}
+       * @type {import("../misc/user/User").User|undefined}
        */
       this.managedBotCreated = this.client.users._add(
         data.managed_bot_created.bot,
@@ -564,7 +612,7 @@ class Message extends Base {
 
     if ("successful_payment" in data) {
       /**
-       * Message is a service message about a successful payment, information about the payment. More about payments
+       * Message is a service message about a successful payment, information about the payment.
        * @type {SuccessfulPayment | undefined}
        */
       this.successfulPayment = new SuccessfulPayment(
@@ -575,7 +623,7 @@ class Message extends Base {
 
     if ("refunded_payment" in data) {
       /**
-       * Message is a service message about a refunded payment, information about the payment. More about payments
+       * Message is a service message about a refunded payment, information about the payment.
        * @type {RefundedPayment | undefined}
        */
       this.refundedPayment = new RefundedPayment(
@@ -602,7 +650,7 @@ class Message extends Base {
 
     if ("connected_website" in data) {
       /**
-       * The domain name of the website on which the user has logged in. More about Telegram Login
+       * The domain name of the website on which the user has logged in.
        * @type {string | undefined}
        */
       this.connectedWebsite = data.connected_website;
@@ -651,8 +699,8 @@ class Message extends Base {
     if ("proximity_alert_triggered" in data) {
       /**
        * @typedef {Object} ProximityAlertTriggered
-       * @property {import("../misc/User").User} traveler - User that triggered the alert
-       * @property {import("../misc/User").User} watcher - User that set the alert
+       * @property {import("../misc/user/User").User} traveler - User that triggered the alert
+       * @property {import("../misc/user/User").User} watcher - User that set the alert
        * @property {number} distance - The distance between the users
        */
 
@@ -962,6 +1010,31 @@ class Message extends Base {
       );
     }
 
+    if ("community_chat_added" in data) {
+      /**
+       * Service message: chat or bot added to a Community
+       */
+      this.communityChatAdded = {
+        id: data.community_chat_added.community.id,
+        title: data.community_chat_added.community.name,
+      };
+    }
+
+    if ("community_chat_removed" in data) {
+      /**
+       * Service message: chat or bot removed from a Community
+       */
+      this.communityChatRemoved = {};
+    }
+
+    if ("community_chat_joined" in data) {
+      /** Service message: chat was joined by a user from a Community */
+      this.communityChatJoined = {
+        id: data.community_chat_joined.community.id,
+        title: data.community_chat_joined.community.name,
+      };
+    }
+
     if ("suggested_post_info" in data) {
       /**
        * Information about suggested post parameters if the message is a suggested post in a channel direct messages chat. If the message is an approved or declined suggested post, then it can't be edited.
@@ -1065,6 +1138,22 @@ class Message extends Base {
       this.document = new Document(this.client, data.document);
     }
 
+    if ("live_photo" in data) {
+      /**
+       * Message is a live photo, information about the live photo. For backward compatibility, when this field is set, the photo field will also be set
+       * @type {LivePhoto | undefined}
+       */
+      this.livePhoto = new LivePhoto(this.client, data.live_photo);
+    }
+
+    if ("paid_media" in data) {
+      /**
+       * Message contains paid media; information about the paid media
+       * @type {PaidMediaInfo | undefined}
+       */
+      this.paidMedia = new PaidMediaInfo(this.client, data.paid_media);
+    }
+
     if ("photo" in data) {
       /**
        * Message is a photo, available sizes of the photo
@@ -1131,7 +1220,7 @@ class Message extends Base {
 
     if ("game" in data) {
       /**
-       * Message is a game, information about the game. More about games
+       * Message is a game, information about the game.
        * @type {Game | undefined}
        */
       this.game = new Game(this.client, data.game);
@@ -1315,10 +1404,33 @@ class Message extends Base {
   }
 
   /**
+   * Send to the current message
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The message to be sent
+   * @param {Omit<MethodParameters["sendRichMessage"], "richMessage" | "chatId" >} [options={}] - out parameters
+   * @returns {Promise<import("../message/Message").Message & { richMessage: import("../message/RichMessage").RichMessage; }>} - On success, the sent Message is returned.
+   */
+  sendRich(richMessage, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.sendRichMessage({
+      richMessage,
+      chatId: this.chat.id,
+      ...(this.threadId && this.inTopic && { messageThreadId: this.threadId }),
+      replyParameters: {
+        message_id: this.id,
+        ...(this.checklistTaskId && { checklistTaskId: this.checklistTaskId }),
+      },
+      ...options,
+    });
+  }
+
+  /**
    * Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled.
    * @param {string} text - Text of the message to be sent, 1-4096 characters after entities parsing
    * @param {number} draftId - Unique identifier of the message draft; must be non-zero. Changes of drafts with the same identifier are animated.
-   * @param {Omit<MethodParameters["sendMessage"], "text" | "chatId" | "draftId">} [options={}] - out parameters
+   * @param {Omit<MethodParameters["sendMessageDraft"], "text" | "chatId" | "draftId">} [options={}] - out parameters
    * @returns {Promise<true>} - Returns True on success.
    */
   sendDraft(text, draftId, options = {}) {
@@ -1332,6 +1444,25 @@ class Message extends Base {
       chatId: this.chat.id,
       ...(this.threadId && this.inTopic && { messageThreadId: this.threadId }),
       ...options,
+    });
+  }
+
+  /**
+   * Use this method to stream a partial rich message to a user while the message is being generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat.
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The partial message to be streamed
+   * @param {number} draftId - Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated.
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  sendRichDraft(richMessage, draftId) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.sendRichMessageDraft({
+      richMessage,
+      draftId,
+      chatId: this.chat.id,
+      ...(this.threadId && this.inTopic && { messageThreadId: this.threadId }),
     });
   }
 
@@ -1385,7 +1516,7 @@ class Message extends Base {
    * Use this method to edit text and game messages.
    * @param {string} text - New text of the message, 1-4096 characters after entities parsing
    * @param {Omit<MethodParameters["editMessageText"], "text" | "chatId" | "messageId">} [options={}] - out parameters
-   * @returns {Promise<true | (Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; })>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   * @returns {Promise<true | (Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }) | Message & { richMessage: RichMessage; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
    */
   edit(text, options = {}) {
     if (!this.chat) {
@@ -1394,6 +1525,25 @@ class Message extends Base {
 
     return this.client.editMessageText({
       text,
+      chatId: this.chat.id,
+      messageId: this.id,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit rich message and game messages.
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - New rich content of the message; required if text isn't specified
+   * @param {Omit<MethodParameters["editMessageText"], "richMessage" | "chatId" | "messageId">} [options={}] - out parameters
+   * @returns {Promise<true | (import("./Message").Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }) | import("./Message").Message & { richMessage: import("./RichMessage").RichMessage; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   */
+  editRich(richMessage, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.editMessageText({
+      richMessage,
       chatId: this.chat.id,
       messageId: this.id,
       ...options,
@@ -1420,7 +1570,7 @@ class Message extends Base {
   }
 
   /**
-   * Use this method to edit animation, audio, document, photo, video messages or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
    * @param {MethodParameters["editMessageMedia"]["media"]} media - An object for a new media content of the message
    * @param {Omit<MethodParameters["editMessageMedia"], "media" | "chatId" | "messageId">} [options={}] - out parameters
    * @returns {Promise<true | Message & { editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
@@ -1459,7 +1609,7 @@ class Message extends Base {
 
   /**
    * Use this method to forward messages of any kind. Service messages and messages with protected content can't be forwarded.
-   * @param {number | string} chatId - Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+   * @param {number | string} chatId - Unique identifier for the target chat or username of the target channel (bot, supergroup or channel in the format @username)
    * @param {Omit<MethodParameters["forwardMessage"], "chatId" | "fromChatId" | "messageId" | "messageThreadId">} [options={}] - out parameters
    * @returns {Promise<Message>} - On success, the sent Message is returned.
    */
@@ -1479,7 +1629,7 @@ class Message extends Base {
 
   /**
    * Use this method to copy messages of any kind. Service messages, paid media messages, giveaway messages, giveaway winners messages, and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method forwardMessage, but the copied message doesn't have a link to the original message.
-   * @param {number | string} chatId - Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+   * @param {number | string} chatId - Unique identifier for the target chat or username of the target channel (bot, supergroup or channel in the format @username)
    * @param {Omit<MethodParameters["copyMessage"], "chatId" | "fromChatId" | "messageId">} [options={}] - out parameters
    * @returns {Promise<number>} - Returns the message id of the sent message on success.
    */
@@ -1556,6 +1706,191 @@ class Message extends Base {
     }
 
     return this.client.deleteMessage(this.chat.id, this.id);
+  }
+
+  /**
+   * Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline.
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  deleteEphemeral() {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.deleteEphemeralMessage({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+    });
+  }
+
+  /**
+   * Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {string} content - New text of the message, 1-4096 characters after entity parsing
+   * @param {Omit<MethodParameters["editEphemeralMessageText"], "text" | "chatId" | "receiverUserId" | "ephemeralMessageId">} [options={}] - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralText(content, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.editEphemeralMessageText({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+      text: content,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {MethodParameters["editEphemeralMessageMedia"]["media"]} media - An object for the new media content of the message. A new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * @param {Omit<MethodParameters["editEphemeralMessageMedia"], "media" | "chatId" | "receiverUserId" | "ephemeralMessageId">} [options={}] - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralMedia(media, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.editEphemeralMessageMedia({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+      media,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {string} [caption] - New caption of the message, 0-1024 characters after entities parsing.
+   * @param {Omit<MethodParameters["editEphemeralMessageCaption"], "caption" | "chatId" | "receiverUserId" | "ephemeralMessageId">} [options={}] - out parameters
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralCaption(caption, options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.editEphemeralMessageCaption({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+      ...(caption && { caption }),
+      ...options,
+    });
+  }
+
+  /**
+   *  Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+   * @param {import("../../client/interfaces/Markup").InlineKeyboardMarkup} replyMarkup - An object for an inline keyboard
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  editEphemeralReplyMarkup(replyMarkup) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    if (!this.author) {
+      throw new TelegramError(ErrorCodes.InvalidUserId);
+    }
+
+    if (!this.ephemeralMessageId) {
+      throw new TelegramError(ErrorCodes.InvalidEphemeralMessageId);
+    }
+
+    return this.client.editEphemeralMessageReplyMarkup({
+      chatId: this.chat.id,
+      receiverUserId: this.author.id,
+      ephemeralMessageId: this.ephemeralMessageId,
+      replyMarkup,
+    });
+  }
+
+  /**
+   * @typedef {Object} ReactMessageDeleteOptions
+   * @property {number | string} [userId] - Identifier of the user whose reaction will be removed, if the reaction was added by a user.
+   * @property {number | string} [actorChatId] - Identifier of the chat whose reaction will be removed, if the reaction was added by a chat.
+   */
+
+  /**
+   * Use this method to remove a reaction from a message in a group or a supergroup chat. The bot must have the 'can_delete_messages' administrator right in the chat.
+   * @param {ReactMessageDeleteOptions} [options] - Options for deleting reaction
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  deleteReaction(options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.deleteMessageReaction({
+      chatId: this.chat.id,
+      messageId: this.id,
+      ...options,
+    });
+  }
+
+  /** Use this method to remove up to 10000 recent reactions in a group or a supergroup chat added by a given user or chat. The bot must have the 'can_delete_messages' administrator right in the chat.
+   * @param {ReactMessageDeleteOptions} [options] - Options for deleting reactions
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  deleteAllReactions(options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.deleteAllMessageReactions({
+      chatId: this.chat.id,
+      ...options,
+    });
+  }
+
+  /**
+   *  Use this method to reply to a received guest message.
+   * @param {import("../../client/interfaces/Inline").InlineQueryResult} result - An object describing the message to be sent.
+   * @returns {Promise<string>} - On success, a Identifier of the sent inline message is returned.
+   */
+  answerGuestQuery(result) {
+    if (!this.guestQueryId) {
+      throw new TelegramError(ErrorCodes.GuestQueryIdNotAvailable);
+    }
+
+    return this.client.answerGuestQuery(this.guestQueryId, result);
   }
 
   /**

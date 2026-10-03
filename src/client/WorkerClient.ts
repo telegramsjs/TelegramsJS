@@ -1,7 +1,7 @@
 import { Events } from "../util/Constants";
 import type { Update } from "@telegram.ts/types";
 import { Message } from "../structures/message/Message";
-import { Poll } from "../structures/media/Poll";
+import { Poll } from "../structures/media/poll/Poll";
 import { PollAnswer } from "../structures/PollAnswer";
 import { InlineQuery } from "../structures/InlineQuery";
 import { ShippingQuery } from "../structures/ShippingQuery";
@@ -18,6 +18,9 @@ import { BusinessConnection } from "../structures/business/BusinessConnection";
 import { BusinessMessagesDeleted } from "../structures/business/BusinessMessagesDeleted";
 import { PaidMediaPurchased } from "../structures/PaidMediaPurchased";
 import { ManagedBotUpdated } from "../structures/ManagedBotUpdated";
+import { BotSubscriptionUpdated } from "../structures/BotSubscriptionUpdated";
+import { MessageGenerationStopped } from "../structures/MessageGenerationStopped";
+
 import type { TelegramClient } from "./TelegramClient";
 
 type UpdateResult =
@@ -38,7 +41,9 @@ type UpdateResult =
   | ChatBoostUpdated
   | ChatBoostRemoved
   | PaidMediaPurchased
-  | ManagedBotUpdated;
+  | ManagedBotUpdated
+  | BotSubscriptionUpdated
+  | MessageGenerationStopped;
 
 /**
  * Handles incoming updates from the Telegram API and routes them to the appropriate event handlers.
@@ -159,6 +164,17 @@ class WorkerClient {
     if ("managed_bot" in data && data.managed_bot) {
       return this.onManagedUpdatedBot(data.managed_bot);
     }
+
+    if ("subscription" in data && data.subscription) {
+      return this.onBotSubscriptionUpdated(data.subscription);
+    }
+
+    if (
+      "stopped_message_generation" in data &&
+      data.stopped_message_generation
+    ) {
+      return this.onStoppedMessageGeneration(data.stopped_message_generation);
+    }
   }
 
   /**
@@ -167,7 +183,10 @@ class WorkerClient {
    */
   onMessage(
     data: NonNullable<
-      Update["message"] | Update["channel_post"] | Update["business_message"]
+      | Update["message"]
+      | Update["channel_post"]
+      | Update["business_message"]
+      | Update["guest_message"]
     >,
   ): Message {
     const message = new Message(this.client, data);
@@ -430,6 +449,33 @@ class WorkerClient {
     const managedBot = new ManagedBotUpdated(this.client, data);
     this.client.emit(Events.ManagedBotUpdated, managedBot);
     return managedBot;
+  }
+
+  /**
+   * Handles bot subscription updates.
+   * @param data - The subscription update data.
+   */
+  onBotSubscriptionUpdated(
+    data: NonNullable<Update["subscription"]>,
+  ): BotSubscriptionUpdated {
+    const subscription = new BotSubscriptionUpdated(this.client, data);
+    this.client.emit(Events.Subscription, subscription);
+    return subscription;
+  }
+
+  /**
+   * Handles bot message stopped updates.
+   * @param data - The message stopped data.
+   */
+  onStoppedMessageGeneration(
+    data: NonNullable<Update["stopped_message_generation"]>,
+  ): MessageGenerationStopped {
+    const messageGenerationStopped = new MessageGenerationStopped(
+      this.client,
+      data,
+    );
+    this.client.emit(Events.MessageGenerationStopped, messageGenerationStopped);
+    return messageGenerationStopped;
   }
 }
 

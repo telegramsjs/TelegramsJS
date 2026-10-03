@@ -7,6 +7,8 @@ enum ErrorCodes {
   UserIdNotAvailable = "USER_ID_NOT_AVAILABLE",
   MessageIdNotAvailable = "MESSAGE_ID_NOT_AVAILABLE",
   ChatIdNotAvailable = "CHAT_ID_NOT_AVAILABLE",
+  GuestQueryIdNotAvailable = "GUEST_QUERY_ID_NOT_AVAILABLE",
+  ChatQueryIdNotAvailable = "CHAT_QUERY_ID_NOT_AVAILABLE",
   FileRetrievalFailed = "FILE_RETRIEVAL_FAILED",
   FileDownloadFailed = "FILE_DOWNLOAD_FAILED",
   FileWriteInvalidType = "FILE_WRITE_INVALID_TYPE",
@@ -14,6 +16,7 @@ enum ErrorCodes {
   InvalidChatId = "INVALID_CHAT_ID",
   InvalidClientId = "INVALID_CLIENT_ID",
   InvalidFileName = "INVALID_FILE_NAME",
+  InvalidEphemeralMessageId = "INVALID_EPHEMERAL_MESSAGE_ID",
   LoginTimeout = "LOGIN_TIMEOUT",
 }
 
@@ -33,6 +36,10 @@ const ErrorMessages = {
     "The message ID related to this message is not available.",
   [ErrorCodes.ChatIdNotAvailable]:
     "The chat ID related to this message is not available.",
+  [ErrorCodes.GuestQueryIdNotAvailable]:
+    "The guest query ID related to this message is not available.",
+  [ErrorCodes.ChatQueryIdNotAvailable]:
+    "The chat query ID related to this message is not available.",
   [ErrorCodes.FileRetrievalFailed]:
     "Failed to retrieve the file from the path: <file_path>.",
   [ErrorCodes.FileDownloadFailed]:
@@ -47,6 +54,8 @@ const ErrorMessages = {
     "The bot ID is not available. Please check if the bot has been initialized",
   [ErrorCodes.InvalidFileName]:
     "The name file is not valid. Please open issue https://github.com/telegramsjs/Telegramsjs/issues",
+  [ErrorCodes.InvalidEphemeralMessageId]:
+    "The provided ID is invalid for retrieving ephemeral message information; it does not correspond to a valid ephemeral message ID.",
   [ErrorCodes.LoginTimeout]:
     "Failed to connect to Telegram BotAPI: connection timeout exceeded",
 } as const;

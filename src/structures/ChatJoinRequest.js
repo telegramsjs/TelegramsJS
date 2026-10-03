@@ -1,6 +1,8 @@
 // @ts-check
 const { Base } = require("./Base");
 const { ChatInviteLink } = require("./chat/ChatInviteLink");
+const { TelegramError } = require("../errors/TelegramError");
+const { ErrorCodes } = require("../errors/ErrorCodes");
 
 class ChatJoinRequest extends Base {
   /**
@@ -9,6 +11,11 @@ class ChatJoinRequest extends Base {
    */
   constructor(client, data) {
     super(client);
+
+    if (data.query_id) {
+      /** Identifier of the join request query; for bots assigned to process join requests only. If present, then the bot must call sendChatJoinRequestWebApp or directly call answerChatJoinRequestQuery within 10 seconds. */
+      this.id = data.query_id;
+    }
 
     /** Identifier of a private chat with the user who sent the join request. The bot can use this identifier for 5 minutes to send messages until the join request is processed, assuming no other administrato */
     this.userChatId = String(data.user_chat_id);
@@ -21,7 +28,7 @@ class ChatJoinRequest extends Base {
 
     /**
      * User that sent the join request
-     * @type {import("./misc/User").User}
+     * @type {import("./misc/user/User").User}
      */
     this.author = this.client.users._add(data.from);
 
@@ -52,6 +59,32 @@ class ChatJoinRequest extends Base {
    */
   get createdAt() {
     return new Date(this.createdTimestamp);
+  }
+
+  /**
+   * Use this method to process a received chat join request query.
+   * @param {"approve" | "decline" | "queue"} result - Result of the query. Must be either “approve” to allow the user to join the chat, “decline” to disallow the user to join the chat, or “queue” to leave the decision to other administrators.
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  answerQuery(result) {
+    if (!this.id) {
+      throw new TelegramError(ErrorCodes.ChatQueryIdNotAvailable);
+    }
+
+    return this.client.answerChatJoinRequestQuery(this.id, result);
+  }
+
+  /**
+   * Use this method to process a received chat join request query by showing a Mini App to the user before deciding the outcome.
+   * @param {string} webAppUrl - The URL of the Mini App to be opened
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  sendRequestWebApp(webAppUrl) {
+    if (!this.id) {
+      throw new TelegramError(ErrorCodes.ChatQueryIdNotAvailable);
+    }
+
+    return this.client.sendChatJoinRequestWebApp(this.id, webAppUrl);
   }
 
   /**

@@ -47,7 +47,7 @@ class MessageOrigin extends Base {
     if ("sender_user" in data) {
       /**
        * User that sent the message originally
-       * @type {import("../misc/User").User | undefined}
+       * @type {import("../misc/user/User").User | undefined}
        */
       this.senderUser = this.client.users._add(data.sender_user);
     }
@@ -88,7 +88,7 @@ class MessageOrigin extends Base {
   }
 
   /**
-   * @returns {this is this & { senderUser: import("../misc/User").User }}
+   * @returns {this is this & { senderUser: import("../misc/user/User").User }}
    */
   isUser() {
     return Boolean("senderUser" in this && this.senderUser);
@@ -235,6 +235,31 @@ class MessageOrigin extends Base {
   }
 
   /**
+   * Reply to the current message
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The message to be sent
+   * @param {Omit<MethodParameters["sendRichMessage"], "richMessage" | "chatId" >} [options={}] - out parameters
+   * @returns {Promise<import("../message/Message").Message & { richMessage: import("../message/RichMessage").RichMessage; }>} - On success, the sent Message is returned.
+   */
+  replyRich(richMessage, options = {}) {
+    if (!this.id) {
+      throw new TelegramError(ErrorCodes.MessageIdNotAvailable);
+    }
+
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.sendRichMessage({
+      richMessage,
+      chatId: this.chat.id,
+      replyParameters: {
+        message_id: this.id,
+      },
+      ...options,
+    });
+  }
+
+  /**
    * Use this method to change the chosen reactions on a message. Service messages of some types can't be reacted to. Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel. In albums, bots must react to the first message.
    * @param {string | import("@telegram.ts/types").ReactionType | import("@telegram.ts/types").ReactionType[] | ReactionType | ReactionType[]} reaction - A JSON-serialized list of reaction types to set on the message. Currently, as non-premium users, bots can set up to one reaction per message. A custom emoji reaction can be used if it is either already present on the message or explicitly allowed by chat administrators. Paid reactions can't be used by bots
    * @param {boolean} [isBig] - Pass True to set the reaction with a big animation
@@ -288,7 +313,7 @@ class MessageOrigin extends Base {
    * Use this method to edit text and game messages.
    * @param {string} text - New text of the message, 1-4096 characters after entities parsing
    * @param {Omit<MethodParameters["editMessageText"], "text" | "chatId" | "messageId">} [options={}] - out parameters
-   * @returns {Promise<true | (import("./Message").Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; })>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   * @returns {Promise<true | (import("./Message").Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }) | import("./Message").Message & { richMessage: import("./RichMessage").RichMessage; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
    */
   edit(text, options = {}) {
     if (!this.id) {
@@ -301,6 +326,29 @@ class MessageOrigin extends Base {
 
     return this.client.editMessageText({
       text,
+      chatId: this.chat.id,
+      messageId: this.id,
+      ...options,
+    });
+  }
+
+  /**
+   * Use this method to edit rich message and game messages.
+   * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - New rich content of the message; required if text isn't specified
+   * @param {Omit<MethodParameters["editMessageText"], "richMessage" | "chatId" | "messageId">} [options={}] - out parameters
+   * @returns {Promise<true | (import("./Message").Message & {content: string; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }) | import("./Message").Message & { richMessage: import("./RichMessage").RichMessage; editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+   */
+  editRich(richMessage, options = {}) {
+    if (!this.id) {
+      throw new TelegramError(ErrorCodes.MessageIdNotAvailable);
+    }
+
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.editMessageText({
+      richMessage,
       chatId: this.chat.id,
       messageId: this.id,
       ...options,
@@ -356,7 +404,7 @@ class MessageOrigin extends Base {
   }
 
   /**
-   * Use this method to edit animation, audio, document, photo, or video messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+   * Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
    * @param {MethodParameters["editMessageMedia"]["media"]} media - An object for a new media content of the message
    * @param {Omit<MethodParameters["editMessageMedia"], "media" | "chatId" | "messageId">} [options={}] - out parameters
    * @returns {Promise<true | import("./Message").Message & { editedUnixTime: number; editedTimestamp: number; editedAt: Date; }>} - On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
@@ -403,7 +451,7 @@ class MessageOrigin extends Base {
 
   /**
    * Use this method to forward messages of any kind. Service messages and messages with protected content can't be forwarded.
-   * @param {number | string} chatId - Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+   * @param {number | string} chatId - Unique identifier for the target chat or username of the target channel (bot, supergroup or channel in the format @username)
    * @param {Omit<MethodParameters["forwardMessage"], "chatId" | "fromChatId" | "messageId">} [options={}] - out parameters
    * @returns {Promise<import("./Message").Message>} - On success, the sent Message is returned.
    */
@@ -426,7 +474,7 @@ class MessageOrigin extends Base {
 
   /**
    * Use this method to copy messages of any kind. Service messages, paid media messages, giveaway messages, giveaway winners messages, and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method forwardMessage, but the copied message doesn't have a link to the original message.
-   * @param {number | string} chatId - Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+   * @param {number | string} chatId - Unique identifier for the target chat or username of the target channel (bot, supergroup or channel in the format @username)
    * @param {Omit<MethodParameters["copyMessage"], "chatId" | "fromChatId" | "messageId">} [options={}] - out parameters
    * @returns {Promise<number>} - Returns the message id of the sent message on success.
    */
@@ -519,6 +567,48 @@ class MessageOrigin extends Base {
     }
 
     return this.client.deleteMessage(this.chat.id, this.id);
+  }
+
+  /**
+   * @typedef {Object} ReactMessageDeleteOptions
+   * @property {number | string} [userId] - Identifier of the user whose reaction will be removed, if the reaction was added by a user.
+   * @property {number | string} [actorChatId] - Identifier of the chat whose reaction will be removed, if the reaction was added by a chat.
+   */
+
+  /**
+   * Use this method to remove a reaction from a message in a group or a supergroup chat. The bot must have the 'can_delete_messages' administrator right in the chat.
+   * @param {ReactMessageDeleteOptions} [options] - Options for deleting reaction
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  deleteReaction(options = {}) {
+    if (!this.id) {
+      throw new TelegramError(ErrorCodes.MessageIdNotAvailable);
+    }
+
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.deleteMessageReaction({
+      chatId: this.chat.id,
+      messageId: this.id,
+      ...options,
+    });
+  }
+
+  /** Use this method to remove up to 10000 recent reactions in a group or a supergroup chat added by a given user or chat. The bot must have the 'can_delete_messages' administrator right in the chat.
+   * @param {ReactMessageDeleteOptions} [options] - Options for deleting reactions
+   * @returns {Promise<true>} - Returns True on success.
+   */
+  deleteAllReactions(options = {}) {
+    if (!this.chat) {
+      throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
+    }
+
+    return this.client.deleteAllMessageReactions({
+      chatId: this.chat.id,
+      ...options,
+    });
   }
 
   /**

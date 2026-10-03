@@ -36,6 +36,7 @@ const Events = {
   Disconnect: "disconnect",
   RawUpdate: "rawUpdate",
   Message: "message",
+  GuestMessage: "message",
   ChannelPost: "message",
   BusinessMessage: "message",
   BusinessConnection: "businessConnection",
@@ -63,6 +64,8 @@ const Events = {
   RemovedChatBoost: "removedChatBoost",
   PurchasedPaidMedia: "purchasedPaidMedia",
   ManagedBotUpdated: "managedBotUpdated",
+  Subscription: "Subscription",
+  MessageGenerationStopped: "messageGenerationStopped",
 } as const;
 
 const RestEvents = {

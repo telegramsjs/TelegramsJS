@@ -19,7 +19,9 @@ type UserPermissionString =
   | "pinMessages"
   | "manageTopics"
   | "manageTags"
-  | "manageDirectMessages";
+  | "reactToMessages"
+  | "manageDirectMessages"
+  | "welcomeMessages";
 
 /**
  * Interface representing the user permission flags.
@@ -40,7 +42,9 @@ interface UserPermissionFlags {
   pinMessages?: boolean;
   manageTopics?: boolean;
   manageTags?: boolean;
+  reactToMessages?: boolean;
   manageDirectMessages?: boolean;
+  welcomeMessages?: boolean;
 }
 
 /**
@@ -86,7 +90,9 @@ class UserPermissions extends PermissionManager<
     pinMessages: 13,
     manageTopics: 14,
     manageTags: 15,
-    manageDirectMessages: 16,
+    reactToMessages: 16,
+    manageDirectMessages: 17,
+    welcomeMessages: 18,
   };
 }
 
@@ -94,9 +100,7 @@ class UserPermissions extends PermissionManager<
  * Type representing a value that can be resolved to user permissions.
  */
 type UserPermissionResolvable =
-  | UserPermissionString
-  | UserPermissionFlags
-  | UserPermissions;
+  UserPermissionString | UserPermissionFlags | UserPermissions;
 
 export {
   UserPermissions,

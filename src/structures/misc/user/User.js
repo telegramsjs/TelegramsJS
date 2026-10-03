@@ -1,17 +1,17 @@
 // @ts-check
-const { Base } = require("../Base");
+const { Base } = require("../../Base");
 
 /**
- * @typedef {import("../../client/interfaces/Language").LanguageCode} LanguageCode
+ * @typedef {import("../../../client/interfaces/Language").LanguageCode} LanguageCode
  */
 
 /**
- * @typedef {import("../../types").MethodParameters} MethodParameters
+ * @typedef {import("../../../types").MethodParameters} MethodParameters
  */
 
 class User extends Base {
   /**
-   * @param {import("../../client/TelegramClient").TelegramClient | import("../../client/BaseClient").BaseClient} client - The client that instantiated this
+   * @param {import("../../../client/TelegramClient").TelegramClient | import("../../../client/BaseClient").BaseClient} client - The client that instantiated this
    * @param {import("@telegram.ts/types").User | import("@telegram.ts/types").UserFromGetMe} data - represents a Telegram user or bot
    */
   constructor(client, data) {
@@ -75,8 +75,8 @@ class User extends Base {
 
   /**
    * Fetches this user
-   * @param {Omit<import("../../managers/BaseManager").IFetchOptions, "cache">} [options] - options for fetch user
-   * @returns {Promise<User | import("../chat/ChatFullInfo").ChatFullInfo>}
+   * @param {Omit<import("../../../managers/BaseManager").IFetchOptions, "cache">} [options] - options for fetch user
+   * @returns {Promise<User | import("../../chat/ChatFullInfo").ChatFullInfo>}
    */
   fetch({ force = true, fullInfo = false } = {}) {
     return this.client.users.fetch(this.id, { force, fullInfo });
@@ -86,7 +86,7 @@ class User extends Base {
    * Use this method to send text messages.
    * @param {string | Omit<MethodParameters["sendMediaGroup"], "chatId">} text - Text of the message to be sent, 1-4096 characters after entities parsing
    * @param {Omit<MethodParameters["sendMessage"], "text" | "chatId">} [options={}] - out parameters
-   * @returns {Promise<import("../message/Message").Message & { content: string } | Array<import("../message/Message").Message & { audio: import("../media/Audio").Audio; } | import("../message/Message").Message & { document: import("../media/Document").Document; } | import("../message/Message").Message & { photo: import("../media/Photo").Photo; } | import("../message/Message").Message & { video: import("../media/Video").Video}>>} - On success, the sent Message is returned.
+   * @returns {Promise<import("../../message/Message").Message & { content: string } | Array<import("../../message/Message").Message & { audio: import("../../media/Audio").Audio; } | import("../../message/Message").Message & { document: import("../../media/Document").Document; } | import("../../message/Message").Message & { photo: import("../../media/Photo").Photo; } | import("../../message/Message").Message & { livePhoto: import("../../media/LivePhoto").LivePhoto; }| import("../../message/Message").Message & { video: import("../../media/video/Video").Video}>>} - On success, the sent Message is returned.
    */
   send(text, options = {}) {
     if (typeof text === "object") {
@@ -97,6 +97,20 @@ class User extends Base {
     }
     return this.client.sendMessage({
       text,
+      chatId: this.id,
+      ...options,
+    });
+  }
+
+  /**
+   * Send to the current message
+   * @param {import("../../../client/interfaces/RichMessage").InputRichMessage} richMessage - The message to be sent
+   * @param {Omit<MethodParameters["sendRichMessage"], "richMessage" | "chatId" >} [options={}] - out parameters
+   * @returns {Promise<import("../../message/Message").Message & { richMessage: import("../../message/RichMessage").RichMessage; }>} - On success, the sent Message is returned.
+   */
+  sendRich(richMessage, options = {}) {
+    return this.client.sendRichMessage({
+      richMessage,
       chatId: this.id,
       ...options,
     });
@@ -134,9 +148,9 @@ class User extends Base {
 
   /**
    * Stores a message that can be sent by a user of a Mini App.
-   * @param {import("../../client/interfaces/Inline").InlineQueryResult} result - An object describing the message to be sent.
+   * @param {import("../../../client/interfaces/Inline").InlineQueryResult} result - An object describing the message to be sent.
    * @param {Omit<MethodParameters["savePreparedInlineMessage"], "userId" | "result">} [options] - out parameters.
-   * @returns {Promise<import("./PreparedInlineMessage").PreparedInlineMessage>} - Returns a PreparedInlineMessage object.
+   * @returns {Promise<import("../PreparedInlineMessage").PreparedInlineMessage>} - Returns a PreparedInlineMessage object.
    */
   saveInlineMessage(result, options = {}) {
     return this.client.savePreparedInlineMessage({
@@ -183,7 +197,7 @@ class User extends Base {
 
   /**
    * Informs a user that some of the Telegram Passport elements they provided contains errors. The user will not be able to re-submit their Passport to you until the errors are fixed (the contents of the field for which you returned the error must change).
-   * @param {readonly import("../../client/interfaces/Passport").PassportElementError[]} errors - An array describing the errors
+   * @param {readonly import("../../../client/interfaces/Passport").PassportElementError[]} errors - An array describing the errors
    * @returns {Promise<true>} - Returns True on success.
    */
   setPassportErrors(errors) {
@@ -205,9 +219,18 @@ class User extends Base {
   }
 
   /**
+   *  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user.
+   * @param {number} [limit=10] - The maximum number of messages to return; 1-20
+   * @returns {Promise<import("../../message/Message").Message[]>} - On success, an Array of Message objects is returned.
+   */
+  fetchPersonalChatMessages(limit = 10) {
+    return this.client.getUserPersonalChatMessages(this.id, limit);
+  }
+
+  /**
    * Use this method to get the list of boosts added to a chat by a user. Requires administrator rights in the chat.
-   * @param {string | number} chatId - Unique identifier for the chat or username of the channel (in the format @channelusername).
-   * @returns {Promise<import("../boost/UserChatBoosts").UserChatBoosts>} - Returns a UserChatBoosts object.
+   * @param {string | number} chatId - Unique identifier for the chat or username of the channel (bot, supergroup or channel in the format @username).
+   * @returns {Promise<import("../../boost/UserChatBoosts").UserChatBoosts>} - Returns a UserChatBoosts object.
    */
   fetchChatBoosts(chatId) {
     return this.client.getUserChatBoosts(chatId, this.id);
@@ -216,7 +239,7 @@ class User extends Base {
   /**
    * Returns the gifts owned and hosted by a user.
    * @param {Omit<MethodParameters["getUserGifts"], "userId">} [options={}] - out parameters.
-   * @returns {Promise<import("../gift/OwnedGifts").OwnedGifts>} - Returns OwnedGifts on success.
+   * @returns {Promise<import("../../gift/OwnedGifts").OwnedGifts>} - Returns OwnedGifts on success.
    */
   fetchUserGifts(options = {}) {
     return this.client.getUserGifts({
@@ -262,7 +285,7 @@ class User extends Base {
 
   /**
    * Checks if this user is equal to another user.
-   * @param {User | import("./ClientUser").ClientUser} other - The other object to compare with.
+   * @param {User | import("../client/ClientUser").ClientUser} other - The other object to compare with.
    * @returns {boolean} True if both objects are instances of User and are equal based on key properties, otherwise false.
    */
   equals(other) {

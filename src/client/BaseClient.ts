@@ -4,6 +4,7 @@ import { Collection } from "@telegram.ts/collection";
 import { UserManager } from "../managers/UserManager";
 import { ChatManager } from "../managers/ChatManager";
 import type { LanguageCode } from "./interfaces/Language";
+import type { InlineQueryResult } from "./interfaces/Inline";
 import type { MediaDataParam, InputProfilePhoto } from "./interfaces/Methods";
 import type { ClientOptions, TelegramClient } from "./TelegramClient";
 import {
@@ -31,6 +32,7 @@ import {
   StarAmount,
   OwnedGifts,
   Story,
+  BotAccessSettings,
 } from "../structures/index";
 import {
   ChatPermissions,
@@ -80,6 +82,9 @@ interface EventHandlers {
   message: (
     message: import("../structures/message/Message").Message,
   ) => PossiblyAsync<void>;
+  guestMessage: (
+    message: import("../structures/message/Message").Message,
+  ) => PossiblyAsync<void>;
   channelPost: (
     message: import("../structures/message/Message").Message,
   ) => PossiblyAsync<void>;
@@ -122,7 +127,9 @@ interface EventHandlers {
   preCheckoutQuery: (
     checkoutQuery: import("../structures/PreCheckoutQuery").PreCheckoutQuery,
   ) => PossiblyAsync<void>;
-  poll: (poll: import("../structures/media/Poll").Poll) => PossiblyAsync<void>;
+  poll: (
+    poll: import("../structures/media/poll/Poll").Poll,
+  ) => PossiblyAsync<void>;
   pollAnswer: (
     pollAnswer: import("../structures/PollAnswer").PollAnswer,
   ) => PossiblyAsync<void>;
@@ -159,6 +166,12 @@ interface EventHandlers {
   managedBotUpdated: (
     managedBotUpdated: import("../structures/ManagedBotUpdated").ManagedBotUpdated,
   ) => PossiblyAsync<void>;
+  subscription: (
+    subscription: import("../structures/BotSubscriptionUpdated").BotSubscriptionUpdated,
+  ) => PossiblyAsync<void>;
+  messageGenerationStopped: (
+    messageGenerationStopped: import("../structures/MessageGenerationStopped").MessageGenerationStopped,
+  ) => PossiblyAsync<void>;
 }
 
 type EventHandlerParameters =
@@ -173,14 +186,16 @@ type EventHandlerParameters =
   | import("../structures/CallbackQuery").CallbackQuery
   | import("../structures/ShippingQuery").ShippingQuery
   | import("../structures/PreCheckoutQuery").PreCheckoutQuery
-  | import("../structures/media/Poll").Poll
+  | import("../structures/media/poll/Poll").Poll
   | import("../structures/PollAnswer").PollAnswer
   | import("../structures/ChatMemberUpdated").ChatMemberUpdated
   | import("../structures/ChatJoinRequest").ChatJoinRequest
   | import("../structures/ChatBoostUpdated").ChatBoostUpdated
   | import("../structures/ChatBoostRemoved").ChatBoostRemoved
   | import("../structures/PaidMediaPurchased").PaidMediaPurchased
-  | import("../structures/ManagedBotUpdated").ManagedBotUpdated;
+  | import("../structures/ManagedBotUpdated").ManagedBotUpdated
+  | import("../structures/BotSubscriptionUpdated").BotSubscriptionUpdated
+  | import("../structures/MessageGenerationStopped").MessageGenerationStopped;
 
 class BaseClient extends EventEmitter {
   public readonly rest: Rest;
@@ -351,11 +366,27 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendMessage"],
   ): Promise<MethodsLibReturnType["sendMessage"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendMessage"]
-      >("sendMessage", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendMessage"]>(
+        "sendMessage",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendMessage"],
+      );
+  }
+
+  /** Use this method to send rich messages. If the message contains a block with a media element, then the bot must have the right to send the media to the chat. On success, the sent Message is returned. */
+  async sendRichMessage(
+    params: MethodParameters["sendRichMessage"],
+  ): Promise<MethodsLibReturnType["sendRichMessage"]> {
+    return this.rest
+      .request<MethodsApiReturnType["sendRichMessage"]>(
+        "sendRichMessage",
+        toSnakeCase(params),
+      )
+      .then(
+        (res) =>
+          new Message(this, res) as MethodsLibReturnType["sendRichMessage"],
       );
   }
 
@@ -374,11 +405,27 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendPhoto"],
   ): Promise<MethodsLibReturnType["sendPhoto"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendPhoto"]
-      >("sendPhoto", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendPhoto"]>(
+        "sendPhoto",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendPhoto"],
+      );
+  }
+
+  /** Use this method to send live photos. On success, the sent Message is returned. */
+  async sendLivePhoto(
+    params: MethodParameters["sendLivePhoto"],
+  ): Promise<MethodsLibReturnType["sendLivePhoto"]> {
+    return this.rest
+      .request<MethodsApiReturnType["sendLivePhoto"]>(
+        "sendLivePhoto",
+        toSnakeCase(params),
+      )
+      .then(
+        (res) =>
+          new Message(this, res) as MethodsLibReturnType["sendLivePhoto"],
       );
   }
 
@@ -389,9 +436,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendAudio"],
   ): Promise<MethodsLibReturnType["sendAudio"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendAudio"]
-      >("sendAudio", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendAudio"]>(
+        "sendAudio",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendAudio"],
       );
@@ -402,9 +450,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendPaidMedia"],
   ): Promise<MethodsLibReturnType["sendPaidMedia"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendPaidMedia"]
-      >("sendPaidMedia", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendPaidMedia"]>(
+        "sendPaidMedia",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           new Message(this, res) as MethodsLibReturnType["sendPaidMedia"],
@@ -416,9 +465,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendDocument"],
   ): Promise<MethodsLibReturnType["sendDocument"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendDocument"]
-      >("sendDocument", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendDocument"]>(
+        "sendDocument",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendDocument"],
       );
@@ -429,9 +479,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendVideo"],
   ): Promise<MethodsLibReturnType["sendVideo"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendVideo"]
-      >("sendVideo", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendVideo"]>(
+        "sendVideo",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendVideo"],
       );
@@ -442,9 +493,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendAnimation"],
   ): Promise<MethodsLibReturnType["sendAnimation"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendAnimation"]
-      >("sendAnimation", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendAnimation"]>(
+        "sendAnimation",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           new Message(this, res) as MethodsLibReturnType["sendAnimation"],
@@ -456,9 +508,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendVoice"],
   ): Promise<MethodsLibReturnType["sendVoice"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendVoice"]
-      >("sendVoice", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendVoice"]>(
+        "sendVoice",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendVoice"],
       );
@@ -470,9 +523,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendVideoNote"],
   ): Promise<MethodsLibReturnType["sendVideoNote"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendVideoNote"]
-      >("sendVideoNote", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendVideoNote"]>(
+        "sendVideoNote",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           new Message(this, res) as MethodsLibReturnType["sendVideoNote"],
@@ -484,9 +538,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendMediaGroup"],
   ): Promise<MethodsLibReturnType["sendMediaGroup"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendMediaGroup"]
-      >("sendMediaGroup", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendMediaGroup"]>(
+        "sendMediaGroup",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           res.map(
@@ -500,9 +555,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendLocation"],
   ): Promise<MethodsLibReturnType["sendLocation"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendLocation"]
-      >("sendLocation", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendLocation"]>(
+        "sendLocation",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendLocation"],
       );
@@ -513,9 +569,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendVenue"],
   ): Promise<MethodsLibReturnType["sendVenue"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendVenue"]
-      >("sendVenue", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendVenue"]>(
+        "sendVenue",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendVenue"],
       );
@@ -526,20 +583,22 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["forwardMessage"],
   ): Promise<MethodsLibReturnType["forwardMessage"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["forwardMessage"]
-      >("forwardMessage", toSnakeCase(params))
+      .request<MethodsApiReturnType["forwardMessage"]>(
+        "forwardMessage",
+        toSnakeCase(params),
+      )
       .then((res) => new Message(this, res));
   }
 
-  /** Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages. On success, an array of MessageId of the sent messages is returned. */
+  /** Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages.On success, an Array of MessageId of the sent messages is returned.*/
   async forwardMessages(
     params: MethodParameters["forwardMessages"],
   ): Promise<MethodsLibReturnType["forwardMessages"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["forwardMessages"]
-      >("forwardMessages", toSnakeCase(params))
+      .request<MethodsApiReturnType["forwardMessages"]>(
+        "forwardMessages",
+        toSnakeCase(params),
+      )
       .then((res) => res.map((msg) => msg.message_id));
   }
 
@@ -548,20 +607,22 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["copyMessage"],
   ): Promise<MethodsLibReturnType["copyMessage"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["copyMessage"]
-      >("copyMessage", toSnakeCase(params))
+      .request<MethodsApiReturnType["copyMessage"]>(
+        "copyMessage",
+        toSnakeCase(params),
+      )
       .then((res) => res.message_id);
   }
 
-  /** Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages,  and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message. Album grouping is kept for copied messages. On success, an array of MessageId of the sent messages is returned. */
+  /** Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages,  and invoice messages can't be copied. A quiz poll can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message. Album grouping is kept for copied messages.On success, an Array of MessageId of the sent messages is returned.*/
   async copyMessages(
     params: MethodParameters["copyMessages"],
   ): Promise<MethodsLibReturnType["copyMessages"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["copyMessages"]
-      >("copyMessages", toSnakeCase(params))
+      .request<MethodsApiReturnType["copyMessages"]>(
+        "copyMessages",
+        toSnakeCase(params),
+      )
       .then((res) => res.map((msg) => msg.message_id));
   }
 
@@ -570,9 +631,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendContact"],
   ): Promise<MethodsLibReturnType["sendContact"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendContact"]
-      >("sendContact", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendContact"]>(
+        "sendContact",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendContact"],
       );
@@ -583,9 +645,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendPoll"],
   ): Promise<MethodsLibReturnType["sendPoll"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendPoll"]
-      >("sendPoll", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendPoll"]>(
+        "sendPoll",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendPoll"],
       );
@@ -596,9 +659,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendChecklist"],
   ): Promise<MethodsLibReturnType["sendChecklist"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendChecklist"]
-      >("sendChecklist", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendChecklist"]>(
+        "sendChecklist",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           new Message(this, res) as MethodsLibReturnType["sendChecklist"],
@@ -610,9 +674,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["editMessageChecklist"],
   ): Promise<MethodsLibReturnType["editMessageChecklist"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editMessageChecklist"]
-      >("editMessageChecklist", toSnakeCase(params))
+      .request<MethodsApiReturnType["editMessageChecklist"]>(
+        "editMessageChecklist",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           new Message(
@@ -627,12 +692,23 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendDice"],
   ): Promise<MethodsLibReturnType["sendDice"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendDice"]
-      >("sendDice", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendDice"]>(
+        "sendDice",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendDice"],
       );
+  }
+
+  /** Use this method to stream a partial rich message to a user while the message is being generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat. Returns True on success. */
+  async sendRichMessageDraft(
+    params: MethodParameters["sendRichMessageDraft"],
+  ): Promise<MethodsLibReturnType["sendRichMessageDraft"]> {
+    return this.rest.request<MethodsApiReturnType["sendRichMessageDraft"]>(
+      "sendRichMessageDraft",
+      toSnakeCase(params),
+    );
   }
 
   /** Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns True on success.
@@ -674,9 +750,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["getUserProfilePhotos"],
   ): Promise<MethodsLibReturnType["getUserProfilePhotos"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getUserProfilePhotos"]
-      >("getUserProfilePhotos", toSnakeCase(params))
+      .request<MethodsApiReturnType["getUserProfilePhotos"]>(
+        "getUserProfilePhotos",
+        toSnakeCase(params),
+      )
       .then((res) => new UserProfilePhotos(this, res));
   }
 
@@ -685,9 +762,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["getUserProfileAudios"],
   ): Promise<MethodsLibReturnType["getUserProfileAudios"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getUserProfileAudios"]
-      >("getUserProfileAudios", toSnakeCase(params))
+      .request<MethodsApiReturnType["getUserProfileAudios"]>(
+        "getUserProfileAudios",
+        toSnakeCase(params),
+      )
       .then((res) => new UserProfileAudios(this, res));
   }
 
@@ -838,9 +916,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["createChatInviteLink"],
   ): Promise<MethodsLibReturnType["createChatInviteLink"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["createChatInviteLink"]
-      >("createChatInviteLink", toSnakeCase(params))
+      .request<MethodsApiReturnType["createChatInviteLink"]>(
+        "createChatInviteLink",
+        toSnakeCase(params),
+      )
       .then((res) => new ChatInviteLink(this, res));
   }
 
@@ -849,9 +928,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["editChatInviteLink"],
   ): Promise<MethodsLibReturnType["editChatInviteLink"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editChatInviteLink"]
-      >("editChatInviteLink", toSnakeCase(params))
+      .request<MethodsApiReturnType["editChatInviteLink"]>(
+        "editChatInviteLink",
+        toSnakeCase(params),
+      )
       .then((res) => new ChatInviteLink(this, res));
   }
 
@@ -860,9 +940,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["createChatSubscriptionInviteLink"],
   ): Promise<MethodsLibReturnType["createChatSubscriptionInviteLink"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["createChatSubscriptionInviteLink"]
-      >("createChatSubscriptionInviteLink", toSnakeCase(params))
+      .request<MethodsApiReturnType["createChatSubscriptionInviteLink"]>(
+        "createChatSubscriptionInviteLink",
+        toSnakeCase(params),
+      )
       .then((res) => new ChatInviteLink(this, res));
   }
 
@@ -871,9 +952,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["editChatSubscriptionInviteLink"],
   ): Promise<MethodsLibReturnType["editChatSubscriptionInviteLink"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editChatSubscriptionInviteLink"]
-      >("editChatSubscriptionInviteLink", toSnakeCase(params))
+      .request<MethodsApiReturnType["editChatSubscriptionInviteLink"]>(
+        "editChatSubscriptionInviteLink",
+        toSnakeCase(params),
+      )
       .then((res) => new ChatInviteLink(this, res));
   }
 
@@ -883,9 +965,10 @@ class BaseClient extends EventEmitter {
     chatId?: number | string,
   ): Promise<MethodsLibReturnType["revokeChatInviteLink"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["revokeChatInviteLink"]
-      >("revokeChatInviteLink", { invite_link: inviteLink, ...(chatId && { chat_id: chatId }) })
+      .request<MethodsApiReturnType["revokeChatInviteLink"]>(
+        "revokeChatInviteLink",
+        { invite_link: inviteLink, ...(chatId && { chat_id: chatId }) },
+      )
       .then((res) => new ChatInviteLink(this, res));
   }
 
@@ -909,6 +992,27 @@ class BaseClient extends EventEmitter {
     );
   }
 
+  /** Use this method to get the access settings of a managed bot. Returns a BotAccessSettings object on success. */
+  async getManagedBotAccessSettings(
+    userId: string | number,
+  ): Promise<MethodsLibReturnType["getManagedBotAccessSettings"]> {
+    return this.rest
+      .request<MethodsApiReturnType["getManagedBotAccessSettings"]>(
+        "getManagedBotAccessSettings",
+        { user_id: userId },
+      )
+      .then((res) => new BotAccessSettings(this, res));
+  }
+
+  /** Use thi method to change the access settings of a managed bot. Returns True on success. */
+  async setManagedBotAccessSettings(
+    params: MethodParameters["setManagedBotAccessSettings"],
+  ): Promise<MethodsLibReturnType["setManagedBotAccessSettings"]> {
+    return this.rest.request<
+      MethodsApiReturnType["setManagedBotAccessSettings"]
+    >("setManagedBotAccessSettings", toSnakeCase(params));
+  }
+
   /** Use this method to approve a chat join get. The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right. Returns True on success. */
   async approveChatJoinRequest(
     userId: number | string,
@@ -919,6 +1023,33 @@ class BaseClient extends EventEmitter {
       {
         ...(chatId && { chat_id: chatId }),
         user_id: userId,
+      },
+    );
+  }
+
+  /** Use this method to process a received chat join request query. Returns True on success. */
+  async answerChatJoinRequestQuery(
+    chatJoinRequestQueryId: string,
+    result: "approve" | "decline" | "queue",
+  ): Promise<MethodsLibReturnType["answerChatJoinRequestQuery"]> {
+    return this.rest.request<
+      MethodsApiReturnType["answerChatJoinRequestQuery"]
+    >("answerChatJoinRequestQuery", {
+      chat_join_request_query_id: chatJoinRequestQueryId,
+      result,
+    });
+  }
+
+  /** Use this method to process a received chat join request query by showing a Mini App to the user before deciding the outcome. Returns True on success. */
+  async sendChatJoinRequestWebApp(
+    chatJoinRequestQueryId: string,
+    webAppURL: string,
+  ): Promise<MethodsLibReturnType["sendChatJoinRequestWebApp"]> {
+    return this.rest.request<MethodsApiReturnType["sendChatJoinRequestWebApp"]>(
+      "sendChatJoinRequestWebApp",
+      {
+        chat_join_request_query_id: chatJoinRequestQueryId,
+        web_app_url: webAppURL,
       },
     );
   }
@@ -1055,14 +1186,16 @@ class BaseClient extends EventEmitter {
       );
   }
 
-  /** Use this method to get a list of administrators in a chat, which aren't bots. Returns an Array of ChatMember objects. */
+  /** Use this method to get a list of administrators in a chat. Returns an Array of ChatMember objects.. Returns an Array of ChatMember objects. */
   async getChatAdministrators(
     chatId: number | string,
+    returnBots?: boolean,
   ): Promise<MethodsLibReturnType["getChatAdministrators"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getChatAdministrators"]
-      >("getChatAdministrators", { chat_id: chatId })
+      .request<MethodsApiReturnType["getChatAdministrators"]>(
+        "getChatAdministrators",
+        { chat_id: chatId, ...(returnBots && { return_bots: returnBots }) },
+      )
       .then(
         (res) =>
           res.map(
@@ -1081,15 +1214,29 @@ class BaseClient extends EventEmitter {
     );
   }
 
+  /** Use this method to reply to a received guest message. On success, a Identifier of the sent inline message is returned. */
+  async answerGuestQuery(
+    guestQueryId: string,
+    result: InlineQueryResult,
+  ): Promise<MethodsLibReturnType["answerGuestQuery"]> {
+    return this.rest
+      .request<MethodsApiReturnType["answerGuestQuery"]>("answerGuestQuery", {
+        guest_query_id: guestQueryId,
+        result,
+      })
+      .then((res) => res.inline_message_id);
+  }
+
   /** Use this method to get the list of boosts added to a chat by a user. Requires administrator rights in the chat. Returns a UserChatBoosts object. */
   async getUserChatBoosts(
     chatId: number | string,
     userId: number | string,
   ): Promise<MethodsLibReturnType["getUserChatBoosts"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getUserChatBoosts"]
-      >("getUserChatBoosts", { chat_id: chatId, user_id: userId })
+      .request<MethodsApiReturnType["getUserChatBoosts"]>("getUserChatBoosts", {
+        chat_id: chatId,
+        user_id: userId,
+      })
       .then((res) => new UserChatBoosts(this, res));
   }
 
@@ -1098,9 +1245,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["getUserGifts"],
   ): Promise<MethodsLibReturnType["getUserGifts"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getUserGifts"]
-      >("getUserGifts", toSnakeCase(params))
+      .request<MethodsApiReturnType["getUserGifts"]>(
+        "getUserGifts",
+        toSnakeCase(params),
+      )
       .then((res) => new OwnedGifts(this, res));
   }
 
@@ -1109,9 +1257,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["getChatGifts"],
   ): Promise<MethodsLibReturnType["getChatGifts"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getChatGifts"]
-      >("getChatGifts", toSnakeCase(params))
+      .request<MethodsApiReturnType["getChatGifts"]>(
+        "getChatGifts",
+        toSnakeCase(params),
+      )
       .then((res) => new OwnedGifts(this, res));
   }
 
@@ -1120,9 +1269,10 @@ class BaseClient extends EventEmitter {
     businessConnectionId: string,
   ): Promise<MethodsLibReturnType["getBusinessConnection"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getBusinessConnection"]
-      >("getBusinessConnection", { business_connection_id: businessConnectionId })
+      .request<MethodsApiReturnType["getBusinessConnection"]>(
+        "getBusinessConnection",
+        { business_connection_id: businessConnectionId },
+      )
       .then((res) => new BusinessConnection(this, res));
   }
 
@@ -1132,10 +1282,32 @@ class BaseClient extends EventEmitter {
     userId: number | string,
   ): Promise<MethodsLibReturnType["getChatMember"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getChatMember"]
-      >("getChatMember", { chat_id: chatId, user_id: userId })
+      .request<MethodsApiReturnType["getChatMember"]>("getChatMember", {
+        chat_id: chatId,
+        user_id: userId,
+      })
       .then((res) => new ChatMember(this, chatId, res));
+  }
+
+  /**  Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user. On success, an Array of Message objects is returned. */
+  async getUserPersonalChatMessages(
+    userId: number | string,
+    limit: number,
+  ): Promise<MethodsLibReturnType["getUserPersonalChatMessages"]> {
+    return this.rest
+      .request<MethodsApiReturnType["getUserPersonalChatMessages"]>(
+        "getUserPersonalChatMessages",
+        {
+          user_id: userId,
+          limit: limit,
+        },
+      )
+      .then(
+        (res) =>
+          res.map(
+            (msg) => new Message(this, msg),
+          ) as unknown as MethodsLibReturnType["getUserPersonalChatMessages"],
+      );
   }
 
   /** Use this method to set a new group sticker set for a supergroup. The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights. Use the field can_set_sticker_set ly returned in getChat requests to check if the bot can use this method. Returns True on success. */
@@ -1164,9 +1336,9 @@ class BaseClient extends EventEmitter {
     MethodsLibReturnType["getForumTopicIconStickers"]
   > {
     return this.rest
-      .request<
-        MethodsApiReturnType["getForumTopicIconStickers"]
-      >("getForumTopicIconStickers")
+      .request<MethodsApiReturnType["getForumTopicIconStickers"]>(
+        "getForumTopicIconStickers",
+      )
       .then(
         (res) =>
           res.map(
@@ -1180,9 +1352,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["createForumTopic"],
   ): Promise<MethodsLibReturnType["createForumTopic"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["createForumTopic"]
-      >("createForumTopic", toSnakeCase(params))
+      .request<MethodsApiReturnType["createForumTopic"]>(
+        "createForumTopic",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           new ForumTopic(this, res.message_thread_id, params.chatId, res),
@@ -1397,9 +1570,9 @@ class BaseClient extends EventEmitter {
     languageCode?: LanguageCode,
   ): Promise<MethodsLibReturnType["getMyDescription"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getMyDescription"]
-      >("getMyDescription", { ...(languageCode && { language_code: languageCode }) })
+      .request<MethodsApiReturnType["getMyDescription"]>("getMyDescription", {
+        ...(languageCode && { language_code: languageCode }),
+      })
       .then((res) => res.description);
   }
 
@@ -1422,9 +1595,10 @@ class BaseClient extends EventEmitter {
     languageCode?: LanguageCode,
   ): Promise<MethodsLibReturnType["getMyShortDescription"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getMyShortDescription"]
-      >("getMyShortDescription", { ...(languageCode && { language_code: languageCode }) })
+      .request<MethodsApiReturnType["getMyShortDescription"]>(
+        "getMyShortDescription",
+        { ...(languageCode && { language_code: languageCode }) },
+      )
       .then((res) => res.short_description);
   }
 
@@ -1466,9 +1640,9 @@ class BaseClient extends EventEmitter {
     chatId?: number | string,
   ): Promise<MethodsLibReturnType["getChatMenuButton"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getChatMenuButton"]
-      >("getChatMenuButton", { ...(chatId && { chat_id: chatId }) })
+      .request<MethodsApiReturnType["getChatMenuButton"]>("getChatMenuButton", {
+        ...(chatId && { chat_id: chatId }),
+      })
       .then((res) => new MenuButton(res));
   }
 
@@ -1493,9 +1667,14 @@ class BaseClient extends EventEmitter {
     forChannels?: boolean,
   ): Promise<MethodsLibReturnType["getMyDefaultAdministratorRights"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getMyDefaultAdministratorRights"]
-      >("getMyDefaultAdministratorRights", { ...(typeof forChannels === "boolean" && { for_channels: forChannels }) })
+      .request<MethodsApiReturnType["getMyDefaultAdministratorRights"]>(
+        "getMyDefaultAdministratorRights",
+        {
+          ...(typeof forChannels === "boolean" && {
+            for_channels: forChannels,
+          }),
+        },
+      )
       .then((res) => new ChatAdministratorRights(res));
   }
 
@@ -1572,9 +1751,10 @@ class BaseClient extends EventEmitter {
     businessConnectionId: string,
   ): Promise<MethodsLibReturnType["getBusinessAccountStarBalance"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getBusinessAccountStarBalance"]
-      >("getBusinessAccountStarBalance", { business_connection_id: businessConnectionId })
+      .request<MethodsApiReturnType["getBusinessAccountStarBalance"]>(
+        "getBusinessAccountStarBalance",
+        { business_connection_id: businessConnectionId },
+      )
       .then((res) => new StarAmount(res));
   }
 
@@ -1583,9 +1763,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["getBusinessAccountGifts"],
   ): Promise<MethodsLibReturnType["getBusinessAccountGifts"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getBusinessAccountGifts"]
-      >("getBusinessAccountGifts", toSnakeCase(params))
+      .request<MethodsApiReturnType["getBusinessAccountGifts"]>(
+        "getBusinessAccountGifts",
+        toSnakeCase(params),
+      )
       .then((res) => new OwnedGifts(this, res));
   }
 
@@ -1630,14 +1811,15 @@ class BaseClient extends EventEmitter {
       .then((res) => new StarAmount(res));
   }
 
-  /** Use this method to edit text and game messages. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
+  /** Use this method to edit text, rich and game messages. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
   async editMessageText(
     params: MethodParameters["editMessageText"],
   ): Promise<MethodsLibReturnType["editMessageText"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editMessageText"]
-      >("editMessageText", toSnakeCase(params))
+      .request<MethodsApiReturnType["editMessageText"]>(
+        "editMessageText",
+        toSnakeCase(params),
+      )
       .then((res) => {
         if (typeof res === "boolean") return res;
         return new Message(
@@ -1652,9 +1834,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["editMessageCaption"],
   ): Promise<MethodsLibReturnType["editMessageCaption"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editMessageCaption"]
-      >("editMessageCaption", toSnakeCase(params))
+      .request<MethodsApiReturnType["editMessageCaption"]>(
+        "editMessageCaption",
+        toSnakeCase(params),
+      )
       .then((res) => {
         if (typeof res === "boolean") return res;
         return new Message(
@@ -1664,14 +1847,15 @@ class BaseClient extends EventEmitter {
       });
   }
 
-  /** Use this method to edit animation, audio, document, photo, video messages or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
+  /** Use this method to edit animation, audio, document, live photo, photo, or video messages, or to replace a text or a rich message with a media. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. */
   async editMessageMedia(
     params: MethodParameters["editMessageMedia"],
   ): Promise<MethodsLibReturnType["editMessageMedia"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editMessageMedia"]
-      >("editMessageMedia", toSnakeCase(params))
+      .request<MethodsApiReturnType["editMessageMedia"]>(
+        "editMessageMedia",
+        toSnakeCase(params),
+      )
       .then((res) => {
         if (typeof res === "boolean") return res;
         return new Message(
@@ -1686,9 +1870,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["editMessageLiveLocation"],
   ): Promise<MethodsLibReturnType["editMessageLiveLocation"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editMessageLiveLocation"]
-      >("editMessageLiveLocation", toSnakeCase(params))
+      .request<MethodsApiReturnType["editMessageLiveLocation"]>(
+        "editMessageLiveLocation",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           (typeof res === "boolean"
@@ -1705,9 +1890,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["stopMessageLiveLocation"],
   ): Promise<MethodsLibReturnType["stopMessageLiveLocation"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["stopMessageLiveLocation"]
-      >("stopMessageLiveLocation", toSnakeCase(params))
+      .request<MethodsApiReturnType["stopMessageLiveLocation"]>(
+        "stopMessageLiveLocation",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           (typeof res === "boolean"
@@ -1724,9 +1910,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["editMessageReplyMarkup"],
   ): Promise<MethodsLibReturnType["editMessageReplyMarkup"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editMessageReplyMarkup"]
-      >("editMessageReplyMarkup", toSnakeCase(params))
+      .request<MethodsApiReturnType["editMessageReplyMarkup"]>(
+        "editMessageReplyMarkup",
+        toSnakeCase(params),
+      )
       .then((res) => {
         if (typeof res === "boolean") return res;
         return new Message(
@@ -1741,9 +1928,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["stopPoll"],
   ): Promise<MethodsLibReturnType["stopPoll"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["stopPoll"]
-      >("stopPoll", toSnakeCase(params))
+      .request<MethodsApiReturnType["stopPoll"]>(
+        "stopPoll",
+        toSnakeCase(params),
+      )
       .then((res) => new Poll(this, res));
   }
 
@@ -1752,9 +1940,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendSticker"],
   ): Promise<MethodsLibReturnType["sendSticker"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendSticker"]
-      >("sendSticker", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendSticker"]>(
+        "sendSticker",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendSticker"],
       );
@@ -1774,9 +1963,10 @@ class BaseClient extends EventEmitter {
     customEmojiIds: string[],
   ): Promise<MethodsLibReturnType["getCustomEmojiStickers"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getCustomEmojiStickers"]
-      >("getCustomEmojiStickers", { custom_emoji_ids: customEmojiIds })
+      .request<MethodsApiReturnType["getCustomEmojiStickers"]>(
+        "getCustomEmojiStickers",
+        { custom_emoji_ids: customEmojiIds },
+      )
       .then((res) => res.map((sticker) => new Sticker(this, sticker)));
   }
 
@@ -1916,9 +2106,10 @@ class BaseClient extends EventEmitter {
     args: MethodParameters["postStory"],
   ): Promise<MethodsLibReturnType["postStory"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["postStory"]
-      >("postStory", toSnakeCase(args))
+      .request<MethodsApiReturnType["postStory"]>(
+        "postStory",
+        toSnakeCase(args),
+      )
       .then((res) => new Story(this, res));
   }
 
@@ -1927,9 +2118,10 @@ class BaseClient extends EventEmitter {
     args: MethodParameters["repostStory"],
   ): Promise<MethodsLibReturnType["repostStory"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["repostStory"]
-      >("repostStory", toSnakeCase(args))
+      .request<MethodsApiReturnType["repostStory"]>(
+        "repostStory",
+        toSnakeCase(args),
+      )
       .then((res) => new Story(this, res));
   }
 
@@ -1938,9 +2130,10 @@ class BaseClient extends EventEmitter {
     args: MethodParameters["editStory"],
   ): Promise<MethodsLibReturnType["editStory"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["editStory"]
-      >("editStory", toSnakeCase(args))
+      .request<MethodsApiReturnType["editStory"]>(
+        "editStory",
+        toSnakeCase(args),
+      )
       .then((res) => new Story(this, res));
   }
 
@@ -2028,9 +2221,10 @@ class BaseClient extends EventEmitter {
     result: MethodParameters["answerWebAppQuery"]["result"],
   ): Promise<MethodsLibReturnType["answerWebAppQuery"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["answerWebAppQuery"]
-      >("answerWebAppQuery", { web_app_query_id: webAppQueryId, result })
+      .request<MethodsApiReturnType["answerWebAppQuery"]>("answerWebAppQuery", {
+        web_app_query_id: webAppQueryId,
+        result,
+      })
       .then((res) => res.inline_message_id);
   }
 
@@ -2039,9 +2233,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["savePreparedInlineMessage"],
   ): Promise<MethodsLibReturnType["savePreparedInlineMessage"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["savePreparedInlineMessage"]
-      >("savePreparedInlineMessage", toSnakeCase(params))
+      .request<MethodsApiReturnType["savePreparedInlineMessage"]>(
+        "savePreparedInlineMessage",
+        toSnakeCase(params),
+      )
       .then((res) => new PreparedInlineMessage(res));
   }
 
@@ -2050,9 +2245,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["savePreparedKeyboardButton"],
   ): Promise<MethodsLibReturnType["savePreparedKeyboardButton"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["savePreparedKeyboardButton"]
-      >("savePreparedKeyboardButton", toSnakeCase(params))
+      .request<MethodsApiReturnType["savePreparedKeyboardButton"]>(
+        "savePreparedKeyboardButton",
+        toSnakeCase(params),
+      )
       .then((res) => res.id);
   }
 
@@ -2061,9 +2257,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendInvoice"],
   ): Promise<MethodsLibReturnType["sendInvoice"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendInvoice"]
-      >("sendInvoice", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendInvoice"]>(
+        "sendInvoice",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendInvoice"],
       );
@@ -2106,7 +2303,7 @@ class BaseClient extends EventEmitter {
 
   /**
    * Verifies a chat on behalf of the organization which is represented by the bot. Returns True on success.
-   * @param chatId - Unique identifier for the target chat or username of the target channel (in the format @channelusername).
+   * @param chatId - Unique identifier for the target chat or username of the target channel (bot, supergroup or channel in the format @username).
    * @param description - Custom description for the verification; 0-70 characters. Must be empty if the organization isn't allowed to provide a custom verification description.
    */
   async verifyChat(
@@ -2134,7 +2331,7 @@ class BaseClient extends EventEmitter {
 
   /**
    * Removes verification from a chat that is currently verified on behalf of the organization represented by the bot. Returns True on success.
-   * @param chatId - Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+   * @param chatId - Unique identifier for the target chat or username of the target channel (bot, supergroup or channel in the format @username)
    */
   async removeChatVerification(
     chatId: number | string,
@@ -2213,9 +2410,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["sendGame"],
   ): Promise<MethodsLibReturnType["sendGame"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["sendGame"]
-      >("sendGame", toSnakeCase(params))
+      .request<MethodsApiReturnType["sendGame"]>(
+        "sendGame",
+        toSnakeCase(params),
+      )
       .then(
         (res) => new Message(this, res) as MethodsLibReturnType["sendGame"],
       );
@@ -2226,9 +2424,10 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["setGameScore"],
   ): Promise<MethodsLibReturnType["setGameScore"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["setGameScore"]
-      >("setGameScore", toSnakeCase(params))
+      .request<MethodsApiReturnType["setGameScore"]>(
+        "setGameScore",
+        toSnakeCase(params),
+      )
       .then(
         (res) =>
           (typeof res === "boolean"
@@ -2244,10 +2443,49 @@ class BaseClient extends EventEmitter {
     params: MethodParameters["getGameHighScores"],
   ): Promise<MethodsLibReturnType["getGameHighScores"]> {
     return this.rest
-      .request<
-        MethodsApiReturnType["getGameHighScores"]
-      >("getGameHighScores", toSnakeCase(params))
+      .request<MethodsApiReturnType["getGameHighScores"]>(
+        "getGameHighScores",
+        toSnakeCase(params),
+      )
       .then((res) => res.map((game) => new GameHighScore(this, game)));
+  }
+
+  /** Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  async editEphemeralMessageText(
+    params: MethodParameters["editEphemeralMessageText"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageText"]> {
+    return this.rest.request<MethodsApiReturnType["editEphemeralMessageText"]>(
+      "editEphemeralMessageText",
+      toSnakeCase(params),
+    );
+  }
+
+  /** Use this method to edit the media of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  async editEphemeralMessageMedia(
+    params: MethodParameters["editEphemeralMessageMedia"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageMedia"]> {
+    return this.rest.request<MethodsApiReturnType["editEphemeralMessageMedia"]>(
+      "editEphemeralMessageMedia",
+      toSnakeCase(params),
+    );
+  }
+
+  /** Use this method to edit the caption of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  async editEphemeralMessageCaption(
+    params: MethodParameters["editEphemeralMessageCaption"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageCaption"]> {
+    return this.rest.request<
+      MethodsApiReturnType["editEphemeralMessageCaption"]
+    >("editEphemeralMessageCaption", toSnakeCase(params));
+  }
+
+  /** Use this method to edit only the reply markup of an ephemeral message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  async editEphemeralMessageReplyMarkup(
+    params: MethodParameters["editEphemeralMessageReplyMarkup"],
+  ): Promise<MethodsLibReturnType["editEphemeralMessageReplyMarkup"]> {
+    return this.rest.request<
+      MethodsApiReturnType["editEphemeralMessageReplyMarkup"]
+    >("editEphemeralMessageReplyMarkup", toSnakeCase(params));
   }
 
   /** Use this method to delete a message, including service messages, with the following limitations:
@@ -2271,6 +2509,16 @@ class BaseClient extends EventEmitter {
     );
   }
 
+  /** Use this method to delete an ephemeral message. Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline. Returns True on success. */
+  deleteEphemeralMessage(
+    args: MethodParameters["deleteEphemeralMessage"],
+  ): Promise<MethodsLibReturnType["deleteEphemeralMessage"]> {
+    return this.rest.request<MethodsApiReturnType["deleteEphemeralMessage"]>(
+      "deleteEphemeralMessage",
+      toSnakeCase(args),
+    );
+  }
+
   /** Use this method to delete multiple messages simultaneously. Returns True on success. */
   async deleteMessages(
     chatId: number | string,
@@ -2279,6 +2527,26 @@ class BaseClient extends EventEmitter {
     return this.rest.request<MethodsApiReturnType["deleteMessages"]>(
       "deleteMessages",
       { chat_id: chatId, message_ids: messageIds },
+    );
+  }
+
+  /** Use this method to remove up to 10000 recent reactions in a group or a supergroup chat added by a given user or chat. The bot must have the 'can_delete_messages' administrator right in the chat. Returns True on success. */
+  async deleteMessageReaction(
+    params: MethodParameters["deleteMessageReaction"],
+  ): Promise<MethodsLibReturnType["deleteMessageReaction"]> {
+    return this.rest.request<MethodsApiReturnType["deleteMessageReaction"]>(
+      "deleteMessageReaction",
+      toSnakeCase(params),
+    );
+  }
+
+  /** Use this method to remove up to 10000 recent reactions in a group or a supergroup chat added by a given user or chat. The bot must have the 'can_delete_messages' administrator right in the chat. Returns True on success. */
+  async deleteAllMessageReactions(
+    params: MethodParameters["deleteAllMessageReactions"],
+  ): Promise<MethodsLibReturnType["deleteAllMessageReactions"]> {
+    return this.rest.request<MethodsApiReturnType["deleteAllMessageReactions"]>(
+      "deleteAllMessageReactions",
+      toSnakeCase(params),
     );
   }
 

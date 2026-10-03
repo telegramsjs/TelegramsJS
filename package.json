@@ -1,12 +1,12 @@
 {
   "name": "telegramsjs",
   "description": "A powerful library for interacting with the Telegram Bot API",
-  "version": "4.14.1",
+  "version": "4.15.0",
   "main": "./dist/src/index.js",
   "types": "./typings/index.d.ts",
   "scripts": {
-    "clear": "rm -rf dist/",
-    "prettier": "prettier --write src/ typings/",
+    "clear": "npx rimraf dist/",
+    "prettier": "npx prettier --write src/ typings/",
     "build:test": "npm run clear && tsc --project ./tsconfig.test.json",
     "build:release": "npm run prettier && npm run clear && tsc --project ./tsconfig.json"
   },
@@ -53,7 +53,6 @@
   },
   "homepage": "https://docs-telegramsjs.vercel.app/",
   "devDependencies": {
-    "@telegram.ts/types": "^1.28.1",
     "@types/node": "^18.19.130",
     "@types/node-fetch": "^2.6.11",
     "@types/safe-compare": "^1.1.2",
@@ -65,6 +64,7 @@
     "node-fetch": "^2.7.0",
     "safe-compare": "^1.1.4",
     "sandwich-stream": "^2.0.2",
-    "tslib": "^2.8.0"
+    "tslib": "^2.8.0",
+    "@telegram.ts/types": "^1.32.1"
   }
 }

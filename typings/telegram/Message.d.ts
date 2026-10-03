@@ -112,21 +112,11 @@ export interface MaskPosition {
   scale: number;
 }
 
-/** This object contains information about one answer option in a poll to send. */
-export interface InputPollOption {
-  /** Option text, 1-100 characters */
-  text: string;
-  /** Mode for parsing entities in the text. See formatting options for more details. Currently, only custom emoji entities are allowed */
-  text_parse_mode?: string;
-  /** A list of special entities that appear in the poll option text. It can be specified instead of text_parse_mode */
-  text_entities?: MessageEntity[];
-}
-
 /** Describes reply parameters for the message that is being sent. */
 export interface ReplyParameters {
   /** Identifier of the message that will be replied to in the current chat, or in the chat chat_id if it is specified */
   message_id: number | string;
-  /** If the message to be replied to is from a different chat, unique identifier for the chat or username of the channel (in the format @channelusername). Not supported for messages sent on behalf of a business account and messages from channel direct messages chats. */
+  /** If the message to be replied to is from a different chat, unique identifier for the chat or username of the bot, supergroup or channel in the format `@username`. Not supported for messages sent on behalf of a business account and messages from channel direct messages chats. */
   chat_id?: number | string;
   /** Identifier of the specific checklist task to be replied to */
   checklist_task_id?: number;
@@ -238,6 +228,138 @@ export interface ReactionTypeCustomEmoji {
   custom_emoji_id: string;
 }
 
+/** This object represents one size of a photo or a file / sticker thumbnail. */
+export interface PhotoSize {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Photo width */
+  width: number;
+  /** Photo height */
+  height: number;
+  /** File size in bytes */
+  file_size?: number;
+}
+
+/** This object represents a voice note. */
+export interface Voice {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Duration of the audio in seconds as defined by sender */
+  duration: number;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+}
+
+/** This object represents an animation file (GIF or H.264/MPEG-4 AVC video without sound). */
+export interface Animation {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Video width as defined by sender */
+  width: number;
+  /** Video height as defined by sender */
+  height: number;
+  /** Duration of the video in seconds as defined by sender */
+  duration: number;
+  /** Animation thumbnail as defined by sender */
+  thumbnail?: PhotoSize;
+  /** Original animation filename as defined by sender */
+  file_name?: string;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+}
+
+/** This object represents an audio file to be treated as music by the Telegram clients. */
+export interface Audio {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Duration of the audio in seconds as defined by sender */
+  duration: number;
+  /** Performer of the audio as defined by sender or by audio tags */
+  performer?: string;
+  /** Title of the audio as defined by sender or by audio tags */
+  title?: string;
+  /** Original filename as defined by sender */
+  file_name?: string;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+  /** Thumbnail of the album cover to which the music file belongs */
+  thumbnail?: PhotoSize;
+}
+
+/** This object represents a general file (as opposed to photos, voice messages and audio files). */
+export interface Document {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Document thumbnail as defined by sender */
+  thumbnail?: PhotoSize;
+  /** Original filename as defined by sender */
+  file_name?: string;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+}
+
+/** This object represents a video file. */
+export interface Video {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Video width as defined by sender */
+  width: number;
+  /** Video height as defined by sender */
+  height: number;
+  /** Duration of the video in seconds as defined by sender */
+  duration: number;
+  /** Video thumbnail */
+  thumbnail?: PhotoSize;
+  /** Available sizes of the cover of the video in the message */
+  cover?: PhotoSize[];
+  /** Timestamp in seconds from which the video will play in the message */
+  start_timestamp?: number;
+  /** Original filename as defined by sender */
+  file_name?: string;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+  /** List of available qualities of the video. */
+  qualities?: VideoQuality[];
+}
+
+/** This object represents a video file of a specific quality. */
+export interface VideoQuality {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Video width */
+  width: number;
+  /** Video height */
+  height: number;
+  /** Codec that was used to encode the video, for example, “h264”, “h265”, or “av01” */
+  codec: string;
+  /** File size in bytes. */
+  file_size?: number;
+}
+
 /** This object represents a point on the map. */
 export interface Location {
   /** Latitude as defined by sender */
@@ -252,4 +374,13 @@ export interface Location {
   heading?: number;
   /** The maximum distance for proximity alerts about approaching another chat member, in meters. For sent live locations only. */
   proximity_alert_padius?: number;
+}
+
+export interface EphemeralMessageParameters {
+  /** Identifier of the user who will receive the message. It is not guaranteed that the user will receive the message, especially if they are offline. See here for more details. */
+  receiver_user_id: number;
+  /** Identifier of the callback query which triggered the message, if any */
+  callback_query_id?: string;
+  /** Pass True if the ephemeral message must be shown in place of the original message */
+  replace_callback_query_message?: boolean;
 }

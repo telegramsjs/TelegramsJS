@@ -127,12 +127,20 @@ class ChatMember extends Base {
       permissions.sendOtherMessages = data.can_send_other_messages;
     }
 
+    if ("can_react_to_messages" in data) {
+      permissions.reactToMessages = data.can_react_to_messages;
+    }
+
     if ("can_add_web_page_previews" in data) {
       permissions.addWebPagePreviews = data.can_add_web_page_previews;
     }
 
     if ("can_edit_tag" in data) {
       permissions.editTag = data.can_edit_tag;
+    }
+
+    if ("can_manage_welcome_messages" in data) {
+      permissions.welcomeMessages = data.can_manage_welcome_messages;
     }
 
     /** Represents the rights of an administrator in a chat */
@@ -151,7 +159,7 @@ class ChatMember extends Base {
     if ("user" in data) {
       /**
        * Information about the user
-       * @type {import("../misc/User").User | undefined}
+       * @type {import("../misc/user/User").User | undefined}
        */
       this.user = this.client.users._add(data.user);
     }

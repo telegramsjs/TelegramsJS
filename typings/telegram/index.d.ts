@@ -6,3 +6,4 @@ export * from "./Markup";
 export * from "./Message";
 export * from "./Methods";
 export * from "./Passport";
+export * from "./RichMessage";

@@ -120,6 +120,7 @@ function applyToClass(structure) {
     "approveSuggestedPost",
     "declineSuggestedPost",
     "sendPhoto",
+    "sendLivePhoto",
     "sendAudio",
     "sendPaidMedia",
     "sendDocument",

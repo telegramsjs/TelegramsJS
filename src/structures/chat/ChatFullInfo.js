@@ -5,7 +5,7 @@ const { Location } = require("../misc/Location");
 const { Sticker } = require("../media/Sticker");
 const { Audio } = require("../media/Audio");
 const { ReactionType } = require("../misc/ReactionType");
-const { UserRating } = require("../misc/UserRating");
+const { UserRating } = require("../misc/user/UserRating");
 const { Message } = require("../message/Message");
 const { ChatPermissions } = require("../../util/permission/ChatPermissions");
 
@@ -519,6 +519,30 @@ class ChatFullInfo extends Chat {
       this.location = {
         location: new Location(this.client, data.location.location),
         address: data.location.address,
+      };
+    }
+
+    if ("paid_message_star_count" in data) {
+      /**
+       * The number of Telegram Stars a general user have to pay to send a message to the chat
+       * @type {number | undefined}
+       */
+      this.paidMessageStarCount = data.paid_message_star_count;
+    }
+
+    if ("guard_bot" in data && data.guard_bot) {
+      /**
+       * The bot that processes join request queries in the chat. The field is only available to chat administrators.
+       * @type {import("../misc/user/User").User | undefined}
+       */
+      this.guardBot = this.client.users._add(data.guard_bot);
+    }
+
+    if ("community" in data) {
+      /** Represents a community (a group of chats). */
+      this.community = {
+        id: data.community.id,
+        name: data.community.name,
       };
     }
 
