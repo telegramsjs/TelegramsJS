@@ -18,6 +18,7 @@ import type {
   SuggestedPostParameters,
 } from "./Inline";
 import type {
+  EphemeralMessageParameters,
   MessageEntity,
   LinkPreviewOptions,
   MaskPosition,
@@ -143,10 +144,8 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
-    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
-    receiverUserId?: number;
-    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
-    callbackQueryId?: string;
+    /** An object containing the parameters of the ephemeral message to send */
+    ephemeralMessageParameters?: EphemeralMessageParameters;
     /** Text of the message to be sent, 1-4096 characters after entities parsing */
     text: string;
     /** Mode for parsing entities in the message text. See formatting options for more details. */
@@ -181,7 +180,7 @@ export type ApiMethods = {
     chatId: number | string;
     /** Unique identifier for the target message thread */
     messageThreadId?: string | number;
-    /** Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated */
+    /** Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated. Otherwise, the draft is replaced without animation. */
     draftId: number;
     /** Text of the message to be sent, 1-4096 characters after entities parsing */
     text: string;
@@ -189,6 +188,10 @@ export type ApiMethods = {
     parseMode?: ParseMode;
     /** A list of special entities that appear in message text, which can be specified instead of parse_mode */
     entities?: MessageEntity[];
+    /** Pass True to show the user a button to stop further drafts. The bot will receive an Update “stopped_message_generation” if the user presses the button. */
+    canStop?: boolean;
+    /** Pass True to keep the draft in the chat when the button is pressed. The draft will still disappear after a short time or if the bot sends a message. To fully preserve the partial draft, the bot should send it as a new message. */
+    keepOnStop?: boolean;
   }): true;
 
   /** Use this method to send rich messages. If the message contains a block with a media element, then the bot must have the right to send the media to the chat. On success, the sent Message is returned. */
@@ -611,10 +614,8 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number | string;
-    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
-    receiverUserId?: number;
-    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
-    callbackQueryId?: string;
+    /** An object containing the parameters of the ephemeral message to send */
+    ephemeralMessageParameters?: EphemeralMessageParameters;
     /** Animation to send. Pass a fileId as String to send an animation that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an animation from the Internet, or upload a new animation using multipart/form-data. */
     animation: MediaDataParam;
     /** Duration of sent animation in seconds */
@@ -675,10 +676,8 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number | string;
-    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
-    receiverUserId?: number;
-    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
-    callbackQueryId?: string;
+    /** An object containing the parameters of the ephemeral message to send */
+    ephemeralMessageParameters?: EphemeralMessageParameters;
     /** Audio file to send. Pass a fileId as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. */
     voice: MediaDataParam;
     /** Voice message caption, 0-1024 characters after entities parsing */
@@ -720,10 +719,8 @@ export type ApiMethods = {
     chatId: number | string;
     /** Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only */
     messageThreadId?: string | number;
-    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
-    receiverUserId?: number;
-    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
-    callbackQueryId?: string;
+    /** An object containing the parameters of the ephemeral message to send */
+    ephemeralMessageParameters?: EphemeralMessageParameters;
     /** Video note to send. Pass a fileId as String to send a video note that exists on the Telegram servers (recommended) or upload a new video using multipart/form-data.. Sending video notes by a URL is currently unsupported */
     videoNote: MediaDataParam;
     /** Duration of sent video in seconds */
@@ -815,10 +812,8 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
-    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
-    receiverUserId?: number;
-    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
-    callbackQueryId?: string;
+    /** An object containing the parameters of the ephemeral message to send */
+    ephemeralMessageParameters?: EphemeralMessageParameters;
     /** Latitude of the location */
     latitude: number;
     /** Longitude of the location */
@@ -959,10 +954,8 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
-    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
-    receiverUserId?: number;
-    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
-    callbackQueryId?: string;
+    /** An object containing the parameters of the ephemeral message to send */
+    ephemeralMessageParameters?: EphemeralMessageParameters;
     /** Latitude of the venue */
     latitude: number;
     /** Longitude of the venue */
@@ -1011,10 +1004,8 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
-    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
-    receiverUserId?: number;
-    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
-    callbackQueryId?: string;
+    /** An object containing the parameters of the ephemeral message to send */
+    ephemeralMessageParameters?: EphemeralMessageParameters;
     /** Contact's phone number */
     phoneNumber: string;
     /** Contact's first name */
@@ -1201,10 +1192,14 @@ export type ApiMethods = {
     chatId: string | number;
     /** Unique identifier for the target message thread */
     messageThreadId?: string | number;
-    /** Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated. */
+    /** Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated. Otherwise, the draft is replaced without animation. */
     draftId: number;
-    /** The partial message to be streamed. Direct upload of new files isn't supported. */
+    /** The partial message to be streamed. Direct upload of new files and explicit upload of files by a URL isn't supported. */
     richMessage: InputRichMessage;
+    /** Pass True to show the user a button to stop further drafts. The bot will receive an Update “stopped_message_generation” if the user presses the button. */
+    canStop?: boolean;
+    /** Pass True to keep the draft in the chat when the button is pressed. The draft will still disappear after a short time or if the bot sends a message. To fully preserve the partial draft, the bot should send it as a new message. */
+    keepOnStop?: boolean;
   }): true;
 
   /** Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns True on success.
@@ -2081,7 +2076,7 @@ export type ApiMethods = {
     entities?: MessageEntity[];
     /** Link preview generation options for the message */
     linkPreviewOptions?: LinkPreviewOptions;
-    /** New rich content of the message; required if text isn't specified. Direct upload of new files isn't supported when an inline message is edited. */
+    /** New rich content of the message; required if text isn't specified. Direct upload of new files and explicit upload of files by a URL isn't supported when an inline message is edited. */
     richMessage?: InputRichMessage;
     /** An object for an inline keyboard. */
     replyMarkup?: InlineKeyboardMarkup;
@@ -2183,7 +2178,7 @@ export type ApiMethods = {
     replyMarkup?: InlineKeyboardMarkup;
   }): Omit<import("../../structures/media/poll/Poll").Poll, "close">;
 
-  /** Use this method to edit an ephemeral text message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
+  /** Use this method to edit an ephemeral text or rich message. Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline. On success, True is returned. */
   editEphemeralMessageText(args: {
     /** Unique identifier for the target chat or username of the target supergroup in the format `@username` */
     chatId: number | string;
@@ -2191,14 +2186,16 @@ export type ApiMethods = {
     receiverUserId: string | number;
     /** Identifier of the ephemeral message to edit */
     ephemeralMessageId: string | number;
-    /** New text of the message, 1-4096 characters after entity parsing */
-    text: string;
+    /** New text of the message, 1-4096 characters after entity parsing; required if rich_message isn't specified */
+    text?: string;
     /** Mode for parsing entities in the message text. See formatting options for more details. */
     parseMode?: ParseMode;
     /** A list of special entities that appear in message text, which can be specified instead of parse_mode */
     entities?: MessageEntity[];
     /** Link preview generation options for the message */
     linkPreviewOptions?: LinkPreviewOptions;
+    /** New rich content of the message; required if text isn't specified */
+    richMessage?: InputRichMessage;
     /** An object for an inline keyboard */
     replyMarkup?: InlineKeyboardMarkup;
   }): true;
@@ -2211,7 +2208,7 @@ export type ApiMethods = {
     receiverUserId: string | number;
     /** Identifier of the ephemeral message to edit */
     ephemeralMessageId: string | number;
-    /** An object for the new media content of the message. A new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. */
+    /** An object for the new media content of the message */
     media: InputMedia;
     /** An object for an inline keyboard */
     replyMarkup?: InlineKeyboardMarkup;
@@ -2227,6 +2224,8 @@ export type ApiMethods = {
     ephemeralMessageId: string | number;
     /** New caption of the message, 0-1024 characters after entities parsing */
     caption?: string;
+    /** Pass True if the caption must be shown above the message media. Supported only for animation, photo and video messages. */
+    showCaptionAboveMedia?: boolean;
     /** Mode for parsing entities in the message caption. See formatting options for more details. */
     parseMode?: ParseMode;
     /** A list of special entities that appear in the caption, which can be specified instead of parse_mode */
@@ -2323,10 +2322,8 @@ export type ApiMethods = {
     messageThreadId?: string | number;
     /** Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat */
     directMessagesTopicId?: number;
-    /** For outgoing ephemeral messages, unique identifier of the user who will receive the message; for group and supergroup chats only. It is not guaranteed that the user will receive the message, especially if they are offline. See ephemeral message sending for more details. */
-    receiverUserId?: number;
-    /** For outgoing ephemeral messages, identifier of the callback query which triggered the message if any */
-    callbackQueryId?: string;
+    /** An object containing the parameters of the ephemeral message to send */
+    ephemeralMessageParameters?: EphemeralMessageParameters;
     /** Sticker to send. Pass a fileId as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a .WEBP sticker from the Internet, or upload a new .WEBP, .TGS, or .WEBM sticker using multipart/form-data. Video and animated stickers can't be sent via an HTTP URL. */
     sticker: MediaDataParam;
     /** Emoji associated with the sticker; only for just uploaded stickers */

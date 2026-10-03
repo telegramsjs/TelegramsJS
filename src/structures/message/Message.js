@@ -1012,7 +1012,7 @@ class Message extends Base {
 
     if ("community_chat_added" in data) {
       /**
-       * Service message: chat added to a Community
+       * Service message: chat or bot added to a Community
        */
       this.communityChatAdded = {
         id: data.community_chat_added.community.id,
@@ -1022,9 +1022,17 @@ class Message extends Base {
 
     if ("community_chat_removed" in data) {
       /**
-       * Service message: chat removed from a Community
+       * Service message: chat or bot removed from a Community
        */
       this.communityChatRemoved = {};
+    }
+
+    if ("community_chat_joined" in data) {
+      /** Service message: chat was joined by a user from a Community */
+      this.communityChatJoined = {
+        id: data.community_chat_joined.community.id,
+        title: data.community_chat_joined.community.name,
+      };
     }
 
     if ("suggested_post_info" in data) {
@@ -1422,7 +1430,7 @@ class Message extends Base {
    * Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled.
    * @param {string} text - Text of the message to be sent, 1-4096 characters after entities parsing
    * @param {number} draftId - Unique identifier of the message draft; must be non-zero. Changes of drafts with the same identifier are animated.
-   * @param {Omit<MethodParameters["sendMessage"], "text" | "chatId" | "draftId">} [options={}] - out parameters
+   * @param {Omit<MethodParameters["sendMessageDraft"], "text" | "chatId" | "draftId">} [options={}] - out parameters
    * @returns {Promise<true>} - Returns True on success.
    */
   sendDraft(text, draftId, options = {}) {
@@ -1443,10 +1451,9 @@ class Message extends Base {
    * Use this method to stream a partial rich message to a user while the message is being generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat.
    * @param {import("../../client/interfaces/RichMessage").InputRichMessage} richMessage - The partial message to be streamed
    * @param {number} draftId - Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated.
-   * @param {Omit<MethodParameters["sendMessage"], "text" | "chatId" | "draftId">} [options={}] - out parameters
    * @returns {Promise<true>} - Returns True on success.
    */
-  sendRichDraft(richMessage, draftId, options = {}) {
+  sendRichDraft(richMessage, draftId) {
     if (!this.chat) {
       throw new TelegramError(ErrorCodes.ChatIdNotAvailable);
     }
@@ -1456,7 +1463,6 @@ class Message extends Base {
       draftId,
       chatId: this.chat.id,
       ...(this.threadId && this.inTopic && { messageThreadId: this.threadId }),
-      ...options,
     });
   }
 

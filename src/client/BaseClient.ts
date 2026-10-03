@@ -169,6 +169,9 @@ interface EventHandlers {
   subscription: (
     subscription: import("../structures/BotSubscriptionUpdated").BotSubscriptionUpdated,
   ) => PossiblyAsync<void>;
+  messageGenerationStopped: (
+    messageGenerationStopped: import("../structures/MessageGenerationStopped").MessageGenerationStopped,
+  ) => PossiblyAsync<void>;
 }
 
 type EventHandlerParameters =
@@ -191,7 +194,8 @@ type EventHandlerParameters =
   | import("../structures/ChatBoostRemoved").ChatBoostRemoved
   | import("../structures/PaidMediaPurchased").PaidMediaPurchased
   | import("../structures/ManagedBotUpdated").ManagedBotUpdated
-  | import("../structures/BotSubscriptionUpdated").BotSubscriptionUpdated;
+  | import("../structures/BotSubscriptionUpdated").BotSubscriptionUpdated
+  | import("../structures/MessageGenerationStopped").MessageGenerationStopped;
 
 class BaseClient extends EventEmitter {
   public readonly rest: Rest;

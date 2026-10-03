@@ -300,6 +300,22 @@ export interface Audio {
   thumbnail?: PhotoSize;
 }
 
+/** This object represents a general file (as opposed to photos, voice messages and audio files). */
+export interface Document {
+  /** Identifier for this file, which can be used to download or reuse the file */
+  file_id: string;
+  /** Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. */
+  file_unique_id: string;
+  /** Document thumbnail as defined by sender */
+  thumbnail?: PhotoSize;
+  /** Original filename as defined by sender */
+  file_name?: string;
+  /** MIME type of the file as defined by sender */
+  mime_type?: string;
+  /** File size in bytes */
+  file_size?: number;
+}
+
 /** This object represents a video file. */
 export interface Video {
   /** Identifier for this file, which can be used to download or reuse the file */
@@ -358,4 +374,13 @@ export interface Location {
   heading?: number;
   /** The maximum distance for proximity alerts about approaching another chat member, in meters. For sent live locations only. */
   proximity_alert_padius?: number;
+}
+
+export interface EphemeralMessageParameters {
+  /** Identifier of the user who will receive the message. It is not guaranteed that the user will receive the message, especially if they are offline. See here for more details. */
+  receiver_user_id: number;
+  /** Identifier of the callback query which triggered the message, if any */
+  callback_query_id?: string;
+  /** Pass True if the ephemeral message must be shown in place of the original message */
+  replace_callback_query_message?: boolean;
 }

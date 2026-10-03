@@ -19,6 +19,7 @@ import { BusinessMessagesDeleted } from "../structures/business/BusinessMessages
 import { PaidMediaPurchased } from "../structures/PaidMediaPurchased";
 import { ManagedBotUpdated } from "../structures/ManagedBotUpdated";
 import { BotSubscriptionUpdated } from "../structures/BotSubscriptionUpdated";
+import { MessageGenerationStopped } from "../structures/MessageGenerationStopped";
 
 import type { TelegramClient } from "./TelegramClient";
 
@@ -41,7 +42,8 @@ type UpdateResult =
   | ChatBoostRemoved
   | PaidMediaPurchased
   | ManagedBotUpdated
-  | BotSubscriptionUpdated;
+  | BotSubscriptionUpdated
+  | MessageGenerationStopped;
 
 /**
  * Handles incoming updates from the Telegram API and routes them to the appropriate event handlers.
@@ -165,6 +167,13 @@ class WorkerClient {
 
     if ("subscription" in data && data.subscription) {
       return this.onBotSubscriptionUpdated(data.subscription);
+    }
+
+    if (
+      "stopped_message_generation" in data &&
+      data.stopped_message_generation
+    ) {
+      return this.onStoppedMessageGeneration(data.stopped_message_generation);
     }
   }
 
@@ -452,6 +461,21 @@ class WorkerClient {
     const subscription = new BotSubscriptionUpdated(this.client, data);
     this.client.emit(Events.Subscription, subscription);
     return subscription;
+  }
+
+  /**
+   * Handles bot message stopped updates.
+   * @param data - The message stopped data.
+   */
+  onStoppedMessageGeneration(
+    data: NonNullable<Update["stopped_message_generation"]>,
+  ): MessageGenerationStopped {
+    const messageGenerationStopped = new MessageGenerationStopped(
+      this.client,
+      data,
+    );
+    this.client.emit(Events.MessageGenerationStopped, messageGenerationStopped);
+    return messageGenerationStopped;
   }
 }
 

@@ -4,6 +4,8 @@ import type { ChatAdministratorRights } from "@telegram.ts/types";
 export interface InlineKeyboardMarkup {
   /** Array of button rows, each represented by an Array of InlineKeyboardButton objects */
   inline_keyboard: InlineKeyboardButton[][];
+  /** Pass True if the reply interface must be shown to the user, as if they had manually selected the bot's message and tapped 'Reply'. The value of the field can't be changed when the inline keyboard is edited. */
+  force_reply?: boolean;
 }
 
 export declare namespace InlineKeyboardButton {
@@ -28,8 +30,12 @@ export declare namespace InlineKeyboardButton {
     web_app: WebAppInfo;
   }
   export interface LoginButton extends AbstractInlineKeyboardButton {
-    /** An HTTPS URL used to automatically authorize the user. Can be used as a replacement for the Telegram Login Widget. */
+    /** An HTTPS URL used to automatically authorize the user. Can be used as a replacement for the Telegram Login Widget. Not supported for ephemeral messages. */
     login_url: LoginUrl;
+  }
+  export interface DisabledButtonButton extends AbstractInlineKeyboardButton {
+    /** If set, then the button is disabled and does nothing */
+    disabled: DisabledButton;
   }
   export interface SwitchInlineButton extends AbstractInlineKeyboardButton {
     /** If set, pressing the button will prompt the user to select one of their chats, open that chat and insert the bot's username and the specified inline query in the input field. May be empty, in which case just the bot's username will be inserted. Not supported for messages sent in channel direct messages chats and on behalf of a business account. */
@@ -68,6 +74,7 @@ export type InlineKeyboardButton =
   | InlineKeyboardButton.CallbackButton
   | InlineKeyboardButton.GameButton
   | InlineKeyboardButton.LoginButton
+  | InlineKeyboardButton.DisabledButtonButton
   | InlineKeyboardButton.PayButton
   | InlineKeyboardButton.SwitchInlineButton
   | InlineKeyboardButton.SwitchInlineCurrentChatButton
@@ -88,8 +95,7 @@ export interface WebAppInfo {
   url: string;
 }
 
-/** This object represents a parameter of the inline keyboard button used to automatically authorize a user. Serves as a great replacement for the Telegram Login Widget when the user is coming from Telegram. All the user needs to do is tap/click a button and confirm that they want to log in.
-Telegram apps support these buttons as of version 5.7. */
+/** This object represents a parameter of the inline keyboard button used to automatically authorize a user. It serves as a great replacement for the Telegram Login Widget when the user is coming from Telegram. All the user needs to do is tap/click a button and confirm that they want to log in. */
 export interface LoginUrl {
   /** An HTTPS URL to be opened with user authorization data added to the query string when the button is pressed. If the user refuses to provide authorization data, the original URL without information about the user will be opened. The data added is the same as described in Receiving authorization data.
 
@@ -97,11 +103,14 @@ export interface LoginUrl {
   url: string;
   /** New text of the button in forwarded messages. */
   forward_text?: string;
-  /** Username of a bot, which will be used for user authorization. See Setting up a bot for more details. If not specified, the current bot's username will be assumed. The url's domain must be the same as the domain linked with the bot. See Linking your domain to the bot for more details. */
+  /** Username of a bot, which will be used for user authorization; not supported in RichMessageButton. See Setting up a bot for more details. If not specified, the current bot's username will be assumed. The url's domain must be the same as the domain linked with the bot. See Linking your domain to the bot for more details. */
   bot_username?: string;
   /** Pass True to request the permission for your bot to send messages to the user. */
   request_write_access?: boolean;
 }
+
+/** This object represents a disabled button which does nothing. Currently holds no information. */
+export interface DisabledButton {}
 
 /** This object represents an inline button that switches the current user to inline mode in a chosen chat, with an optional default inline query. */
 export interface SwitchInlineQueryChosenChat {
@@ -151,6 +160,8 @@ export interface ReplyKeyboardMarkup {
 
   Example: A user requests to change the bot's language, bot replies to the request with a keyboard to select the new language. Other users in the group don't see the keyboard. */
   selective?: boolean;
+  /** Pass True if the reply interface must be shown to the user, as if they had manually selected the bot's message and tapped 'Reply' */
+  force_reply?: boolean;
 }
 
 export declare namespace KeyboardButton {

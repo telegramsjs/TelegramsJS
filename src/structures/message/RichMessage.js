@@ -6,7 +6,7 @@ const { Photo } = require("../media/Photo");
 const { Video } = require("../media/video/Video");
 const { Voice } = require("../media/Voice");
 const { Location } = require("../misc/Location");
-
+const { Document } = require("../media/Document");
 class RichBlockParagraph extends Base {
   /**
    * @param {import("../../client/TelegramClient").TelegramClient | import("../../client/BaseClient").BaseClient} client - The client that instantiated this
@@ -445,6 +445,69 @@ class RichBlockThinking extends Base {
   }
 }
 
+class RichBlockDocument extends Base {
+  /**
+   * @param {import("../../client/TelegramClient").TelegramClient | import("../../client/BaseClient").BaseClient} client - The client that instantiated this
+   * @param {import("@telegram.ts/types").RichBlockDocument} data - Data about the document block
+   */
+  constructor(client, data) {
+    super(client);
+
+    /** Type of the block, always "document" */
+    this.type = data.type;
+
+    /** The document */
+    this.document = new Document(client, data.document);
+
+    if (data.caption) {
+      /** Caption of the block */
+      this.caption = data.caption;
+    }
+  }
+}
+
+class RichBlockButtons extends Base {
+  /**
+   * @param {import("../../client/TelegramClient").TelegramClient | import("../../client/BaseClient").BaseClient} client - The client that instantiated this
+   * @param {import("@telegram.ts/types").RichBlockButtons} data - Data about the buttons block
+   */
+  constructor(client, data) {
+    super(client);
+
+    /** Type of the block, always "buttons" */
+    this.type = data.type;
+
+    /** The buttons */
+    this.buttons = data.buttons;
+
+    if (data.align) {
+      /** Horizontal alignment of the buttons: "left", "center" or "right" */
+      this.align = data.align;
+    }
+  }
+}
+
+class RichBlockExpandableBlockQuotation extends Base {
+  /**
+   * @param {import("../../client/TelegramClient").TelegramClient | import("../../client/BaseClient").BaseClient} client - The client that instantiated this
+   * @param {import("@telegram.ts/types").RichBlockExpandableBlockQuotation} data - Data about the "Thinking…" placeholder block
+   */
+  constructor(client, data) {
+    super(client);
+
+    /** Type of the block, always "“expandable_blockquote”" */
+    this.type = data.type;
+
+    /** Content of the block */
+    this.text = data.text;
+
+    if ("credit" in data) {
+      /** Credit of the block */
+      this.credit = data.credit;
+    }
+  }
+}
+
 /** Maps a block's `type` discriminator to the class that wraps it */
 const RichBlockTypes = {
   paragraph: RichBlockParagraph,
@@ -464,10 +527,13 @@ const RichBlockTypes = {
   map: RichBlockMap,
   animation: RichBlockAnimation,
   audio: RichBlockAudio,
+  document: RichBlockDocument,
   photo: RichBlockPhoto,
   video: RichBlockVideo,
   voice_note: RichBlockVoiceNote,
   thinking: RichBlockThinking,
+  buttons: RichBlockButtons,
+  expandable_blockquote: RichBlockExpandableBlockQuotation,
 };
 
 /**
@@ -478,7 +544,10 @@ const RichBlockTypes = {
  * @returns {InstanceType<(typeof RichBlockTypes)[keyof typeof RichBlockTypes]>}
  */
 function resolveRichBlock(client, data) {
-  const RichBlockClass = RichBlockTypes[data.type];
+  /** @type {keyof typeof RichBlockTypes} */
+  const type = data.type;
+
+  const RichBlockClass = RichBlockTypes[type];
 
   if (!RichBlockClass) {
     throw new TypeError(`Unknown rich block type: "${data.type}"`);

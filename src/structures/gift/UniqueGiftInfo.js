@@ -1,6 +1,7 @@
 // @ts-check
 const { Base } = require("../Base");
 const { UniqueGift } = require("./UniqueGift");
+const { MessageEntities } = require("../message/MessageEntities");
 
 class UniqueGiftInfo extends Base {
   /**
@@ -15,6 +16,16 @@ class UniqueGiftInfo extends Base {
 
     /** Origin of the gift. Currently, either “upgrade” for gifts upgraded from regular gifts, “transfer” for gifts transferred from other users or channels, “resale” for gifts bought from other users, “gifted_upgrade” for upgrades purchased after the gift was sent, or “offer” for gifts bought or sold through gift purchase offers */
     this.origin = data.origin;
+
+    if ("text" in data) {
+      /** Text of the message that was added to the gift  */
+      this.content = data.text;
+
+      if ("entities" in data) {
+        /** Special entities that appear in the text */
+        this.entities = new MessageEntities(client, data.text, data.entities);
+      }
+    }
 
     if ("owned_gift_id" in data) {
       /** Unique identifier of the received gift for the bot; only present for gifts received on behalf of business accounts */
@@ -43,6 +54,9 @@ class UniqueGiftInfo extends Base {
        */
       this.nextTransferUnixTime = data.next_transfer_date;
     }
+
+    /** True, if the sender and gift text are shown only to the gift receiver; otherwise, everyone will be able to see them */
+    this.isPrivate = Boolean(data.is_private);
   }
 
   /**

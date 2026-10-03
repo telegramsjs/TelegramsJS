@@ -3999,6 +3999,10 @@ export class UniqueGiftInfo extends Base {
   gift: UniqueGift;
   /** Origin of the gift. Currently, either “upgrade” for gifts upgraded from regular gifts, “transfer” for gifts transferred from other users or channels, “resale” for gifts bought from other users, “gifted_upgrade” for upgrades purchased after the gift was sent, or “offer” for gifts bought or sold through gift purchase offers */
   origin: "upgrade" | "transfer" | "resale" | "gifted_upgrade" | "offer";
+  /** Text of the message that was added to the gift  */
+  content?: string;
+  /** Special entities that appear in the text */
+  entities?: MessageEntities;
   /** Unique identifier of the received gift for the bot; only present for gifts received on behalf of business accounts */
   ownedGiftId?: string;
   /** Number of Telegram Stars that must be paid to transfer the gift; omitted if the bot cannot transfer the gift */
@@ -4009,6 +4013,8 @@ export class UniqueGiftInfo extends Base {
   lastResaleAmount?: number;
   /**  Point in time (Unix timestamp) when the gift can be transferred. If it is in the past, then the gift can be transferred now */
   nextTransferUnixTime?: number;
+  /** True, if the sender and gift text are shown only to the gift receiver; otherwise, everyone will be able to see them */
+  isPrivate: boolean;
   /**
    * Return the timestamp gift can be transferred. If it is in the past, then the gift can be transferred now
    */
@@ -7332,6 +7338,15 @@ export declare class Message extends Base {
    */
   communityChatRemoved?: {};
   /**
+   * Service message: chat was joined by a user from a Community
+   */
+  communityChatJoined: {
+    /** Unique identifier for this community */
+    id: number;
+    /** Name of the community */
+    title: string;
+  };
+  /**
    * Information about suggested post parameters if the message is a suggested post in a channel direct messages chat. If the message is an approved or declined suggested post, then it can't be edited.
    */
   suggestedPostInfo?: SuggestedPostInfo;
@@ -8042,6 +8057,9 @@ export class RichMessage extends Base {
     | RichBlockPhoto
     | RichBlockVideo
     | RichBlockVoiceNote
+    | RichBlockButtons
+    | RichBlockDocument
+    | RichBlockExpandableBlockQuotation
     | RichBlockThinking
   )[];
   /** True, if the rich message must be shown right-to-left */
@@ -8203,6 +8221,9 @@ declare class RichBlockBlockQuotation extends Base {
     | RichBlockPhoto
     | RichBlockVideo
     | RichBlockVoiceNote
+    | RichBlockButtons
+    | RichBlockDocument
+    | RichBlockExpandableBlockQuotation
     | RichBlockThinking
   )[];
   /** Credit of the block */
@@ -8259,6 +8280,9 @@ declare class RichBlockCollage extends Base {
     | RichBlockPhoto
     | RichBlockVideo
     | RichBlockVoiceNote
+    | RichBlockButtons
+    | RichBlockDocument
+    | RichBlockExpandableBlockQuotation
     | RichBlockThinking
   )[];
   /** Caption of the block */
@@ -8298,6 +8322,9 @@ declare class RichBlockSlideshow extends Base {
     | RichBlockPhoto
     | RichBlockVideo
     | RichBlockVoiceNote
+    | RichBlockButtons
+    | RichBlockDocument
+    | RichBlockExpandableBlockQuotation
     | RichBlockThinking
   )[];
   /** Caption of the block */
@@ -8360,6 +8387,9 @@ declare class RichBlockDetails extends Base {
     | RichBlockPhoto
     | RichBlockVideo
     | RichBlockVoiceNote
+    | RichBlockButtons
+    | RichBlockDocument
+    | RichBlockExpandableBlockQuotation
     | RichBlockThinking
   )[];
   /** True, if the content of the block is visible by default */
@@ -8493,6 +8523,57 @@ declare class RichBlockThinking extends Base {
   type: "thinking";
   /** Text of the block */
   text: import("@telegram.ts/types").RichText;
+}
+
+declare class RichBlockExpandableBlockQuotation extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the "Thinking…" placeholder block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: RichBlockExpandableBlockQuotation,
+  );
+  /** Type of the block, always "“expandable_blockquote”" */
+  type: "expandable_blockquote";
+  /** Content of the block */
+  text: import("@telegram.ts/types").RichText;
+  /** Credit of the block */
+  credit?: import("@telegram.ts/types").RichText;
+}
+
+declare class RichBlockButtons extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the buttons block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockButtons,
+  );
+  /** Type of the block, always "buttons" */
+  type: "buttons";
+  /** The buttons */
+  buttons: import("@telegram.ts/types").RichMessageButton[];
+  /** Horizontal alignment of the buttons: "left", "center" or "right" */
+  align?: "left" | "center" | "right";
+}
+
+declare class RichBlockDocument extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - Data about the document block
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").RichBlockDocument,
+  );
+  /** Type of the block, always "document" */
+  type: "document";
+  /** The document */
+  document: Document;
+  /** Caption of the block */
+  caption?: import("@telegram.ts/types").RichBlockCaption;
 }
 
 export declare class CallbackQuery extends Base {
@@ -11095,6 +11176,43 @@ export declare class InlineQuery extends Base {
   ): Promise<true>;
 }
 
+export class MessageGenerationStopped extends Base {
+  /**
+   * @param client - The client that instantiated this
+   * @param data - update about a user stopping message generation.
+   */
+  constructor(
+    client: TelegramClient | BaseClient,
+    data: import("@telegram.ts/types").MessageGenerationStopped,
+  );
+  /** Unique identifier of the message draft which was stopped */
+  draftId: number;
+  /** Chat in which the message is generated */
+  chat: Chat;
+  /** Unique identifier of the message thread in which the message is generated */
+  messageThreadId?: number;
+  /**
+   * Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled.
+   * @param text - Text of the message to be sent, 1-4096 characters after entities parsing
+   * @param options - out parameters
+   * @returns Returns True on success.
+   */
+  sendDraft(
+    text: string,
+    options?: Omit<
+      MethodParameters["sendMessageDraft"],
+      "text" | "chatId" | "draftId" | "messageThreadId"
+    >,
+  ): Promise<true>;
+  /**
+   * Use this method to stream a partial rich message to a user while the message is being generated. Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat.
+   * @param richMessage - The partial message to be streamed
+   * @param draftId - Unique identifier of the message draft; must be non-zero. Changes to drafts with the same identifier are animated.
+   * @returns Returns True on success.
+   */
+  sendRichDraft(richMessage: InputRichMessage, draftId: number): Promise<true>;
+}
+
 export declare class ManagedBotUpdated extends Base {
   /**
    * @param client - The client that instantiated this
@@ -11529,6 +11647,9 @@ export interface EventHandlers {
     managedBotUpdated: ManagedBotUpdated,
   ) => PossiblyAsync<void>;
   subscription: (subscription: BotSubscriptionUpdated) => PossiblyAsync<void>;
+  messageGenerationStopped: (
+    messageGenerationStopped: MessageGenerationStopped,
+  ) => PossiblyAsync<void>;
 }
 
 export type EventHandlerParameters =
@@ -11550,7 +11671,9 @@ export type EventHandlerParameters =
   | ChatBoostUpdated
   | ChatBoostRemoved
   | ManagedBotUpdated
-  | PaidMediaPurchased;
+  | PaidMediaPurchased
+  | BotSubscriptionUpdated
+  | MessageGenerationStopped;
 
 export declare class BaseClient extends EventEmitter {
   readonly rest: Rest;
@@ -12566,7 +12689,8 @@ export declare class WorkerClient {
     | ChatBoostUpdated
     | ChatBoostRemoved
     | PaidMediaPurchased
-    | BotSubscriptionUpdated;
+    | BotSubscriptionUpdated
+    | MessageGenerationStopped;
   /**
    * Handles new messages, channel posts, or business messages.
    * @param data - The message data.
@@ -12710,6 +12834,13 @@ export declare class WorkerClient {
   onBotSubscriptionUpdated(
     data: NonNullable<Update["subscription"]>,
   ): BotSubscriptionUpdated;
+  /**
+   * Handles bot message stopped updates.
+   * @param data - The message stopped data.
+   */
+  onStoppedMessageGeneration(
+    data: NonNullable<Update["stopped_message_generation"]>,
+  ): MessageGenerationStopped;
 }
 
 export declare class MenuButton {
@@ -14944,6 +15075,7 @@ export declare const Events: {
   readonly RemovedChatBoost: "removedChatBoost";
   readonly ManagedBotUpdated: "managedBotUpdated";
   readonly Subscription: "subscription";
+  readonly MessageGenerationStopped: "messageGenerationStopped";
 };
 
 export declare const CollectorEvents: {

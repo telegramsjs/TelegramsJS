@@ -1,15 +1,24 @@
 import type {
+  CopyTextButton,
+  DisabledButton,
+  LoginUrl,
+  SwitchInlineQueryChosenChat,
+  WebAppInfo,
+} from "./Markup";
+import type {
+  User,
   Animation,
   Audio,
+  Document,
   Location,
   PhotoSize,
   Video,
   Voice,
-  User,
 } from "./Message";
 import type {
   InputMediaAnimation,
   InputMediaAudio,
+  InputMediaDocument,
   InputMediaPhoto,
   InputMediaVideo,
   InputMediaVoiceNote,
@@ -21,7 +30,7 @@ import type {
  *
  * Plain URLs, e-mail addresses, username mentions, hashtags, cashtags, bot commands, phone numbers, and bank card numbers are detected automatically. To disable automatic entity detection, pass True in the skip_entity_detection field. Note that Telegram clients will display an alert to the user before opening an inline link ('Open this link?' together with the full URL).
  *
- * When Markdown-style or HTML-style formatting is used, you can use links in the form tg://photo?id=..., tg://video?id=..., and tg://audio?id=... instead of an HTTP URL to reuse previously uploaded files or upload a new file.
+ * When Markdown-style or HTML-style formatting is used, you can use links in the form tg://photo?id=..., tg://video?id=..., tg://document?id=..., and tg://audio?id=... instead of an HTTP URL to reuse previously uploaded files or upload a new file.
  *
  * #### Rich Message Limits
  *
@@ -30,7 +39,7 @@ import type {
  * - Up to 32768 UTF-8 characters in the rich message text, including custom emoji alternative text and formula source.
  * - Up to 500 blocks, including nested blocks, list items, ordered list items, table rows, quotation blocks, and details blocks.
  * - Up to 16 levels of nested formatting and blocks.
- * - Up to 50 media attachments in total, including photos, videos, and audio files.
+ * - Up to 50 media attachments in total.
  * - Up to 20 columns in a table.
  *
  * #### Rich Markdown style
@@ -94,12 +103,14 @@ import type {
  * ![](https://telegram.org/example/audio.mp3)
  * ![](https://telegram.org/example/audio.ogg)
  * ![](https://telegram.org/example/animation.gif)
+ * ![](https://telegram.org/example/document.zip)
  *
  * ![](https://telegram.org/example/photo.jpg "Photo caption")
  * ![](https://telegram.org/example/video.mp4 "Video caption")
  * ![](https://telegram.org/example/audio.mp3 "Audio caption")
  * ![](https://telegram.org/example/audio.ogg "Voice note caption")
  * ![](https://telegram.org/example/animation.gif "Animation caption")
+ * ![](https://telegram.org/example/document.zip "Document caption")
  *
  * | Header 1 | Header 2 |
  * |:---------|:--------:|
@@ -174,6 +185,38 @@ import type {
  * <tg-map lat="41.9" long="12.5" zoom="14"/>
  * <tg-collage><img src="https://telegram.org/example/photo.jpg"/><figcaption>Caption<cite>The Author</cite></figcaption></tg-collage>
  * <tg-slideshow><img src="https://telegram.org/example/photo.jpg"/><video src="https://telegram.org/example/video.mp4"/><figcaption>Slideshow caption<cite>The Author</cite></figcaption></tg-slideshow>
+ * <p>Inline buttons:
+ *   <tg-button type="url" style="success" url="https://t.me">url</tg-button>
+ *   <tg-button type="url" url="tg://user?id=777000">user</tg-button>
+ *   <tg-button type="callback_data" style="link" data="callback">callback with the date <tg-time unix="1647531900" format="wDT">22:45 tomorrow</tg-time> and the custom emoji <tg-emoji emoji-id="5368324170671202286">👍</tg-emoji></tg-button>
+ *   <tg-button type="web_app" style="danger" url="https://telegram.org">Mini App (private chats only)</tg-button>
+ *   <tg-button type="login_url" url="https://t.me" forward-text="forward text" request-write-access>login (requires domain set up via @BotFather)</tg-button>
+ *   <tg-button type="switch_inline_query" style="primary" query="inline">inline</tg-button>
+ *   <tg-button type="switch_inline_query_current_chat" query="inline 2">inline 2</tg-button>
+ *   <tg-button type="switch_inline_query_chosen_chat" query="inline 3" allow-user-chats allow-bot-chats allow-group-chats allow-channel-chats>inline 3</tg-button>
+ *   <tg-button type="copy_text" text="...copy">Copy</tg-button>
+ *   <tg-button type="disabled">Disabled</tg-button>
+ * </p>
+ * <tg-button-row align="left">
+ *   <tg-button type="url" url="https://t.me">url</tg-button>
+ *   <tg-button type="url" style="success" url="tg://user?id=777000">user</tg-button>
+ *   <tg-button type="callback_data" style="link" data="callback">callback</tg-button>
+ * </tg-button-row>
+ * <tg-button-row align="center">
+ *   <tg-button type="web_app" url="https://telegram.org">Mini App (private chats only)</tg-button>
+ * </tg-button-row>
+ * <tg-button-row align="center">
+ *   <tg-button type="login_url" style="danger" url="https://t.me" forward-text="forward text" request-write-access>login (requires domain set up via @BotFather)</tg-button>
+ * </tg-button-row>
+ * <tg-button-row align="right">
+ *   <tg-button type="switch_inline_query" query="inline">inline</tg-button>
+ *   <tg-button type="switch_inline_query_current_chat" query="inline 2">inline 2</tg-button>
+ *   <tg-button type="switch_inline_query_chosen_chat" query="inline 3" allow-user-chats allow-group-chats allow-channel-chats>inline 3</tg-button>
+ * </tg-button-row>
+ * <tg-button-row>
+ *   <tg-button type="copy_text" text="...copy">Copy</tg-button>
+ *   <tg-button type="disabled" style="primary">Disabled</tg-button>
+ * </tg-button-row>
  * ```
  *
  * Please note:
@@ -245,6 +288,7 @@ import type {
  * </ul>
  *
  * <blockquote>Block quotation started<br>Block quotation continued<br>The last line of the block quotation<cite>The Author</cite></blockquote>
+ * <blockquote expandable>Expandable block quotation started<br>Expandable block quotation continued<br>Expandable block quotation continued<br>Expandable block quotation continued<br>The last line of the expandable block quotation<cite>The Author</cite></blockquote>
  * <aside>Pull quote<cite>The Author</cite></aside>
  *
  * <img src="https://telegram.org/example/photo.jpg"/>
@@ -252,12 +296,14 @@ import type {
  * <audio src="https://telegram.org/example/audio.mp3"></audio>
  * <audio src="https://telegram.org/example/audio.ogg"></audio>
  * <video src="https://telegram.org/example/animation.gif"></video>
+ * <tg-document src="https://telegram.org/example/document.zip"></tg-document>
  *
  * <figure><img src="https://telegram.org/example/photo.jpg" tg-spoiler/><figcaption>Photo caption<cite>Photo credit</cite></figcaption></figure>
  * <figure><video src="https://telegram.org/example/video.mp4" tg-spoiler></video><figcaption>Video caption</figcaption></figure>
  * <figure><audio src="https://telegram.org/example/audio.mp3"></audio><figcaption>Audio caption</figcaption></figure>
  * <figure><audio src="https://telegram.org/example/audio.ogg"></audio><figcaption>Voice note caption</figcaption></figure>
  * <figure><video src="https://telegram.org/example/animation.gif" tg-spoiler></video><figcaption>Animation caption</figcaption></figure>
+ * <figure><tg-document src="https://telegram.org/example/document.zip"></tg-document><figcaption>Document caption</figcaption></figure>
  *
  * <tg-map lat="41.9" long="12.5" zoom="14"/>
  * <figure><tg-map lat="41.9" long="12.5" zoom="14"/><figcaption>Map caption</figcaption></figure>
@@ -268,7 +314,7 @@ import type {
  * <tg-slideshow><video src="https://telegram.org/example/video.mp4"/><img src="https://telegram.org/example/photo.jpg"/><figcaption>Slideshow caption</figcaption></tg-slideshow>
  *
  * <table><tr><th>Header 1</th><th>Header 2</th></tr><tr><td>Value 1</td><td>Value 2</td></tr></table>
- * <table bordered striped><caption>Table caption</caption>
+ * <table bordered striped compact><caption>Table caption</caption>
  * <tr><td colspan="2" rowspan="2" align="left">Value</td><td align="center">Value2</td><td align="right">Value3</td></tr>
  * <tr><td valign="top">Value4</td><td valign="middle">Value5</td><td valign="bottom">Value6</td></tr>
  * <tr><td>Value7</td></tr></table>
@@ -276,6 +322,38 @@ import type {
  * <details><summary>Title</summary>Content</details>
  * <details open><summary>Title</summary>Content</details>
  * <tg-math-block>E = mc^2</tg-math-block>
+ * <p>Inline buttons:
+ *   <tg-button type="url" style="success" url="https://t.me">url</tg-button>
+ *   <tg-button type="url" url="tg://user?id=777000">user</tg-button>
+ *   <tg-button type="callback_data" style="link" data="callback">callback with the date <tg-time unix="1647531900" format="wDT">22:45 tomorrow</tg-time> and the custom emoji <tg-emoji emoji-id="5368324170671202286">👍</tg-emoji></tg-button>
+ *   <tg-button type="web_app" style="danger" url="https://telegram.org">Mini App (private chats only)</tg-button>
+ *   <tg-button type="login_url" url="https://t.me" forward-text="forward text" request-write-access>login (requires domain set up via @BotFather)</tg-button>
+ *   <tg-button type="switch_inline_query" style="primary" query="inline">inline</tg-button>
+ *   <tg-button type="switch_inline_query_current_chat" query="inline 2">inline 2</tg-button>
+ *   <tg-button type="switch_inline_query_chosen_chat" query="inline 3" allow-user-chats allow-bot-chats allow-group-chats allow-channel-chats>inline 3</tg-button>
+ *   <tg-button type="copy_text" text="...copy">Copy</tg-button>
+ *   <tg-button type="disabled">Disabled</tg-button>
+ * </p>
+ * <tg-button-row align="left">
+ *   <tg-button type="url" url="https://t.me">url</tg-button>
+ *   <tg-button type="url" style="success" url="tg://user?id=777000">user</tg-button>
+ *   <tg-button type="callback_data" style="link" data="callback">callback</tg-button>
+ * </tg-button-row>
+ * <tg-button-row align="center">
+ *   <tg-button type="web_app" url="https://telegram.org">Mini App (private chats only)</tg-button>
+ * </tg-button-row>
+ * <tg-button-row align="center">
+ *   <tg-button type="login_url" style="danger" url="https://t.me" forward-text="forward text" request-write-access>login (requires domain set up via @BotFather)</tg-button>
+ * </tg-button-row>
+ * <tg-button-row align="right">
+ *   <tg-button type="switch_inline_query" query="inline">inline</tg-button>
+ *   <tg-button type="switch_inline_query_current_chat" query="inline 2">inline 2</tg-button>
+ *   <tg-button type="switch_inline_query_chosen_chat" query="inline 3" allow-user-chats allow-group-chats allow-channel-chats>inline 3</tg-button>
+ * </tg-button-row>
+ * <tg-button-row>
+ *   <tg-button type="copy_text" text="...copy">Copy</tg-button>
+ *   <tg-button type="disabled" style="primary">Disabled</tg-button>
+ * </tg-button-row>
  * ```
  *
  * Please note:
@@ -301,7 +379,7 @@ export interface InputRichMessage {
   html?: string;
   /** Content of the rich message to send described using Markdown formatting. See rich message formatting options for more details. Use media field to specify the media used in the message. */
   markdown?: string;
-  /** List of media that are specified in the markdown or html fields using tg://photo?id=, tg://video?id=, and tg://audio?id= links */
+  /** List of media that are specified in the markdown or html fields using tg://photo?id=, tg://video?id=, tg://document?id=, and tg://audio?id= links */
   media?: InputRichMessageMedia[];
   /** Pass True if the rich message must be shown right-to-left */
   is_rtl?: boolean;
@@ -311,12 +389,13 @@ export interface InputRichMessage {
 
 /** Describes a media element embedded in an outgoing rich message. */
 export interface InputRichMessageMedia {
-  /** Unique identifier of the media used in a tg://photo?id=, tg://video?id=, or tg://audio?id= link. 1-64 characters, only A-Z, a-z, 0-9, _ and - are allowed. */
+  /** Unique identifier of the media used in a tg://photo?id=, tg://video?id=, tg://document?id=, or tg://audio?id= link. 1-64 characters, only A-Z, a-z, 0-9, _ and - are allowed. */
   id: string;
   /** The media to be sent. Everything except the media itself and its properties is ignored. */
   media:
     | InputMediaAnimation
     | InputMediaAudio
+    | InputMediaDocument
     | InputMediaPhoto
     | InputMediaVideo
     | InputMediaVoiceNote;
@@ -345,6 +424,7 @@ export interface InputRichMessageMedia {
 - RichTextHashtag
 - RichTextCashtag
 - RichTextBotCommand
+- RichTextButton
 - RichTextAnchor
 - RichTextAnchorLink
 - RichTextReference
@@ -373,6 +453,7 @@ export type RichText =
   | RichTextHashtag
   | RichTextCashtag
   | RichTextBotCommand
+  | RichTextButton
   | RichTextAnchor
   | RichTextAnchorLink
   | RichTextReference
@@ -659,6 +740,7 @@ export interface RichBlockListItem {
 - RichBlockAnchor
 - RichBlockList
 - RichBlockBlockQuotation
+- RichBlockExpandableBlockQuotation
 - RichBlockPullQuotation
 - RichBlockCollage
 - RichBlockSlideshow
@@ -667,9 +749,11 @@ export interface RichBlockListItem {
 - RichBlockMap
 - RichBlockAnimation
 - RichBlockAudio
+- RichBlockDocument
 - RichBlockPhoto
 - RichBlockVideo
 - RichBlockVoiceNote
+- RichBlockButtons
 - RichBlockThinking */
 export type RichBlock =
   | RichBlockParagraph
@@ -681,6 +765,7 @@ export type RichBlock =
   | RichBlockAnchor
   | RichBlockList
   | RichBlockBlockQuotation
+  | RichBlockExpandableBlockQuotation
   | RichBlockPullQuotation
   | RichBlockCollage
   | RichBlockSlideshow
@@ -689,9 +774,11 @@ export type RichBlock =
   | RichBlockMap
   | RichBlockAnimation
   | RichBlockAudio
+  | RichBlockDocument
   | RichBlockPhoto
   | RichBlockVideo
   | RichBlockVoiceNote
+  | RichBlockButtons
   | RichBlockThinking;
 
 /** A text paragraph, corresponding to the HTML tag \<p>. */
@@ -770,6 +857,16 @@ export interface RichBlockBlockQuotation {
   credit?: RichText;
 }
 
+/** A block quotation, corresponding to the HTML tag \<blockquote> with custom attribute "collapsed". */
+export interface RichBlockExpandableBlockQuotation {
+  /** Type of the block, always “expandable_blockquote” */
+  type: "expandable_blockquote";
+  /** Content of the block */
+  text: RichText;
+  /** Credit of the block */
+  credit?: RichText;
+}
+
 /** A quotation with centered text, loosely corresponding to the HTML tag \<aside>. */
 export interface RichBlockPullQuotation {
   /** Type of the block, always “pullquote” */
@@ -800,6 +897,89 @@ export interface RichBlockSlideshow {
   caption?: RichBlockCaption;
 }
 
+export declare namespace RichMessageButton {
+  export interface AbstractRichMessageButton {
+    /** Text of the button. May contain only plain text, RichTextCustomEmoji and RichTextDateTime entities. */
+    text: RichText;
+    /** Style of the button. Must be one of “danger” (red), “success” (green), “primary” (blue) or “link” (the button is shown as a regular link without borders). If omitted, then an app-specific style is used. The style “link” is allowed only for callback buttons. */
+    style?: "danger" | "success" | "primary" | "link";
+  }
+  export interface UrlButton extends AbstractRichMessageButton {
+    /** HTTP or tg:// URL to be opened when the button is pressed. Links tg://user?id=<user_id> can be used to mention a user by their identifier without using a username, if this is allowed by their privacy settings. */
+    url: string;
+  }
+  export interface CallbackButton extends AbstractRichMessageButton {
+    /** Data to be sent in a callback query to the bot when the button is pressed, 1-64 bytes */
+    callback_data: string;
+  }
+  export interface WebAppButton extends AbstractRichMessageButton {
+    /** Description of the Web App that will be launched when the user presses the button. The Web App will be able to send an arbitrary message on behalf of the user using the method answerWebAppQuery. Available only in private chats between a user and the bot. Not supported for messages sent on behalf of a business account. */
+    web_app: WebAppInfo;
+  }
+  export interface LoginUrlButton extends AbstractRichMessageButton {
+    /** An HTTPS URL used to automatically authorize the user. Can be used as a replacement for the Telegram Login Widget. Not supported for ephemeral messages. */
+    login_url: Omit<LoginUrl, "bot_username">;
+  }
+  export interface SwitchInlineButton extends AbstractRichMessageButton {
+    /** If set, pressing the button will prompt the user to select one of their chats, open that chat and insert the bot's username and the specified inline query in the input field. May be empty, in which case just the bot's username will be inserted. Not supported for messages sent in channel direct messages chats and on behalf of a business account. */
+    switch_inline_query: string;
+  }
+  export interface SwitchInlineCurrentChatButton extends AbstractRichMessageButton {
+    /** If set, pressing the button will insert the bot's username and the specified inline query in the current chat's input field. May be empty, in which case only the bot's username will be inserted. Not supported in channels and for messages sent in channel direct messages chats and on behalf of a business account. */
+    switch_inline_query_current_chat: string;
+  }
+  export interface SwitchInlineQueryChosenChatButton extends AbstractRichMessageButton {
+    /** If set, pressing the button will prompt the user to select one of their chats of the specified type, open that chat and insert the bot's username and the specified inline query in the input field. Not supported for messages sent in channel direct messages chats and on behalf of a business account. */
+    switch_inline_query_chosen_chat: SwitchInlineQueryChosenChat;
+  }
+  export interface CopyTextButtonButton extends AbstractRichMessageButton {
+    /** A button that copies the specified text to the clipboard */
+    copy_text: CopyTextButton;
+  }
+  export interface DisabledButtonButton extends AbstractRichMessageButton {
+    /** If set, then the button is disabled and does nothing */
+    disabled: DisabledButton;
+  }
+}
+/** This object represents a button in a RichMessage. Exactly one of the fields other than text and style must be used to specify the type of the button. */
+export type RichMessageButton =
+  | RichMessageButton.UrlButton
+  | RichMessageButton.CallbackButton
+  | RichMessageButton.WebAppButton
+  | RichMessageButton.LoginUrlButton
+  | RichMessageButton.SwitchInlineButton
+  | RichMessageButton.SwitchInlineCurrentChatButton
+  | RichMessageButton.SwitchInlineQueryChosenChatButton
+  | RichMessageButton.CopyTextButtonButton
+  | RichMessageButton.DisabledButtonButton;
+
+/** A button. */
+export interface RichTextButton {
+  /** Type of the rich text, always “button” */
+  type: "button";
+  /** The button */
+  button: RichMessageButton;
+}
+
+/** A block containing a list of buttons that are shown in one row, corresponding to the custom HTML tag \<tg-button-row>. */
+export interface RichBlockButtons {
+  /** Type of the block, always “buttons” */
+  type: "buttons";
+  /** The buttons */
+  buttons: RichMessageButton[];
+  /** Horizontal alignment of the buttons. Currently, must be one of “left”, “center”, or “right”. */
+  align?: "left" | "center" | "right";
+}
+/** A block containing a list of buttons that are shown in one row, corresponding to the custom HTML tag \<tg-button-row>. */
+export interface InputRichBlockButtons {
+  /** Type of the block, always “buttons” */
+  type: "buttons";
+  /** List of 1-8 buttons to send */
+  buttons: RichMessageButton[];
+  /** Horizontal alignment of the buttons. Currently, must be one of “left”, “center”, or “right”. */
+  align?: "left" | "center" | "right";
+}
+
 /** A table, corresponding to the HTML tag \<table>. */
 export interface RichBlockTable {
   /** Type of the block, always “table” */
@@ -810,6 +990,8 @@ export interface RichBlockTable {
   is_bordered?: true;
   /** True, if the table is striped */
   is_striped?: true;
+  /** True, if table cells have smaller indents */
+  is_compact?: true;
   /** Caption of the table */
   caption?: RichText;
 }
@@ -860,6 +1042,16 @@ export interface RichBlockAudio {
   type: "audio";
   /** The audio */
   audio: Audio;
+  /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A block with a general file, corresponding to the custom HTML tag \<tg-document>. */
+export interface RichBlockDocument {
+  /** Type of the block, always “document” */
+  type: "document";
+  /** The document */
+  document: Document;
   /** Caption of the block */
   caption?: RichBlockCaption;
 }
@@ -931,6 +1123,7 @@ export interface InputRichBlockListItem {
 - InputRichBlockAnchor
 - InputRichBlockList
 - InputRichBlockBlockQuotation
+- InputRichBlockExpandableBlockQuotation
 - InputRichBlockPullQuotation
 - InputRichBlockCollage
 - InputRichBlockSlideshow
@@ -939,9 +1132,11 @@ export interface InputRichBlockListItem {
 - InputRichBlockMap
 - InputRichBlockAnimation
 - InputRichBlockAudio
+- InputRichBlockDocument
 - InputRichBlockPhoto
 - InputRichBlockVideo
 - InputRichBlockVoiceNote
+- InputRichBlockButtons
 - InputRichBlockThinking */
 export type InputRichBlock =
   | InputRichBlockParagraph
@@ -953,6 +1148,7 @@ export type InputRichBlock =
   | InputRichBlockAnchor
   | InputRichBlockList
   | InputRichBlockBlockQuotation
+  | InputRichBlockExpandableBlockQuotation
   | InputRichBlockPullQuotation
   | InputRichBlockCollage
   | InputRichBlockSlideshow
@@ -961,9 +1157,11 @@ export type InputRichBlock =
   | InputRichBlockMap
   | InputRichBlockAnimation
   | InputRichBlockAudio
+  | InputRichBlockDocument
   | InputRichBlockPhoto
   | InputRichBlockVideo
   | InputRichBlockVoiceNote
+  | InputRichBlockButtons
   | InputRichBlockThinking;
 
 /** A text paragraph, corresponding to the HTML tag \<p>. */
@@ -1042,6 +1240,16 @@ export interface InputRichBlockBlockQuotation {
   credit?: RichText;
 }
 
+/** A block quotation, corresponding to the HTML tag \<blockquote> with custom attribute "collapsed". */
+export interface InputRichBlockExpandableBlockQuotation {
+  /** Type of the block, always “expandable_blockquote” */
+  type: "expandable_blockquote";
+  /** Content of the block */
+  text: RichText;
+  /** Credit of the block */
+  credit?: RichText;
+}
+
 /** A quotation with centered text, loosely corresponding to the HTML tag \<aside>. */
 export interface InputRichBlockPullQuotation {
   /** Type of the block, always “pullquote” */
@@ -1082,6 +1290,8 @@ export interface InputRichBlockTable {
   is_bordered?: true;
   /** Pass True if the table is striped */
   is_striped?: true;
+  /** Pass True if table cells must have smaller indents */
+  is_compact?: true;
   /** Caption of the table */
   caption?: RichText;
 }
@@ -1131,6 +1341,16 @@ export interface InputRichBlockAudio {
   /** The audio. Caption is ignored. */
   audio: InputMediaAudio;
   /** Caption of the block */
+  caption?: RichBlockCaption;
+}
+
+/** A block with a general file, corresponding to the custom HTML tag \<tg-document>. */
+export interface InputRichBlockDocument {
+  /** Type of the block, always “document” */
+  type: "document";
+  /** The document. Caption is ignored. */
+  document: InputMediaDocument;
+  /** Caption of the block	 */
   caption?: RichBlockCaption;
 }
 
