@@ -6,6 +6,8 @@
 
 - Support api `10.0`, `10.1`, `10.2`, `10.3` [cbfe29e](https://github.com/telegramsjs/TelegramsJS/commit/cbfe29e00bded859fab6519efe5b5c2ad06c2639), [000a3eb](https://github.com/telegramsjs/TelegramsJS/commit/000a3ebd1553e29aedf0fa337d7fec4beafcb77f), [2b22972](https://github.com/telegramsjs/TelegramsJS/commit/2b22972eff4c0d3bbca540753c5d0ac32ed31451), [5f107f6](https://github.com/telegramsjs/TelegramsJS/commit/5f107f6e518e52d59d026ca1e8e3868ca467c0da)
 
+---
+
 # **4.14.0 - (2026-06-06)**
 
 ## **Updates**
